@@ -1,5 +1,5 @@
 {
-  description = "Tuisic";
+  description = "tano";
 
   nixConfig = {
     extra-substituters = [
@@ -14,20 +14,39 @@
 
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
-    flake-parts.url = "github:hercules-ci/flake-parts";
     fenix = {
       url = "github:nix-community/fenix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = { flake-parts, ... }@inputs:
-    flake-parts.lib.mkFlake { inherit inputs; } {
-      imports = [
-        ./modules
-        ./pkgs
-      ];
+  outputs = {
+    self,
+    nixpkgs,
+    ...
+  } @ inputs: let
+    systems = ["x86_64-linux" "aarch64-linux"];
 
-      systems = [ "x86_64-linux" "aarch64-linux" ];
+    forAllSystems = nixpkgs.lib.genAttrs systems;
+  in {
+    formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.alejandra);
+
+    packages = forAllSystems (system: let
+      pkgs = nixpkgs.legacyPackages.${system};
+    in {
+      tano = pkgs.callPackage ./nix/tano.nix {inherit inputs;};
+      default = self.packages.${system}.tano;
+    });
+
+    devShells = forAllSystems (system: let
+      pkgs = nixpkgs.legacyPackages.${system};
+    in {
+      default = pkgs.callPackage ./nix/shell.nix {inherit inputs;};
+    });
+
+    homeModules = {
+      default = import ./nix/home-manager.nix {inherit inputs self;};
+      tano = self.homeModules.default;
     };
+  };
 }

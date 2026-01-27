@@ -1,0 +1,13 @@
+[package]
+name = "tano"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tano-config = { path = "../tano-config" }
+tano-database = { path = "../tano-database" }
+tano-tui = { path = "../tano-tui" }
+tano-backend = { path = "../tano-backend" }
+color-eyre = "0.6.5"
+tokio = { version = "1.49.0", features = ["full"] }
+crossterm = "0.29.0"
