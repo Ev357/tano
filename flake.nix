@@ -3,11 +3,11 @@
 
   nixConfig = {
     extra-substituters = [
-      "https://tuisic.cachix.org"
+      "https://tano.cachix.org"
       "https://nix-community.cachix.org"
     ];
     extra-trusted-public-keys = [
-      "tuisic.cachix.org-1:XEafqLtuNhcRjCZERfPbKp+xSAqDC9Gfd0O7gzFpaSY="
+      "tano.cachix.org-1:Vi3qOkAzZY0PVB7ca3Kp03gURYrEFK7gNdX2thodn7I="
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
     ];
   };
