@@ -42,7 +42,7 @@ in {
 
     package = lib.mkOption {
       type = lib.types.package;
-      default = self.packages.${pkgs.stdenv.hostPlatform.system}.template-manager;
+      default = self.packages.${pkgs.stdenv.hostPlatform.system}.tano;
       description = "The package to use";
     };
 
