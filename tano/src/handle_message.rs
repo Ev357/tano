@@ -2,7 +2,11 @@ use crossterm::event::{Event, KeyCode};
 use tano_backend::actor::{handle::BackendActorHandle, msg::BackendMsg};
 use tano_config::actor::handle::ConfigActorHandle;
 use tano_database::actor::{handle::DatabaseActorHandle, mgs::DatabaseMsg};
-use tano_tui::{actor::handle::TuiActorHandle, components::songs::SongsProps, view::View};
+use tano_tui::{
+    actor::{handle::TuiActorHandle, msg::TuiMsg},
+    components::songs::SongsProps,
+    view::View,
+};
 use tokio::sync::watch;
 
 use crate::{
@@ -78,10 +82,21 @@ pub fn handle_message(model_tx: &watch::Sender<Model>, msg: Msg) -> Cmd {
                         KeyCode::Char('q') => Cmd::Msg(Msg::Restore),
                         _ => Cmd::None,
                     },
+                    Event::Resize(_, _) => Cmd::Some(|Handles { tui_handle, .. }| {
+                        Box::pin(async move {
+                            let result = tui_handle.render().await;
+
+                            Msg::Tui(TuiMsg::RenderDone(result))
+                        })
+                    }),
                     _ => Cmd::None,
                 },
                 Err(error) => Cmd::Error(error.into()),
             },
+        },
+        Msg::Tui(TuiMsg::RenderDone(result)) => match result {
+            Ok(()) => Cmd::None,
+            Err(report) => Cmd::Error(report),
         },
         Msg::Restore => Cmd::Some(|Handles { backend_handle, .. }| {
             Box::pin(async move {

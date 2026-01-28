@@ -24,15 +24,6 @@ pub struct RootComponent {
 
 impl Component<View> for RootComponent {
     fn render(&mut self, frame: &mut Frame) {
-        match &self.props {
-            View::Loading => {
-                self.child = RootChild::Loading(LoadingComponent);
-            }
-            View::Songs(songs) => {
-                self.child = RootChild::Songs(SongsComponent::new(songs));
-            }
-        }
-
         match self.child {
             RootChild::Loading(ref mut loading) => loading.render(frame),
             RootChild::Songs(ref mut songs) => songs.render(frame),
@@ -48,6 +39,14 @@ impl Component<View> for RootComponent {
                 component.rerender(frame, props);
             }
             _ => {
+                match props {
+                    View::Loading => {
+                        self.child = RootChild::Loading(LoadingComponent);
+                    }
+                    View::Songs(songs) => {
+                        self.child = RootChild::Songs(SongsComponent::new(songs));
+                    }
+                }
                 self.props = props.clone();
                 self.render(frame);
             }

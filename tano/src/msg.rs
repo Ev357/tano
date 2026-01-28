@@ -2,6 +2,7 @@ use color_eyre::eyre::Result;
 use tano_backend::actor::msg::BackendMsg;
 use tano_config::config::Config;
 use tano_database::actor::mgs::DatabaseMsg;
+use tano_tui::actor::msg::TuiMsg;
 
 #[derive(Debug)]
 pub enum Msg {
@@ -11,4 +12,5 @@ pub enum Msg {
     Restore,
     Close { restore_result: Result<()> },
     Backend(BackendMsg),
+    Tui(TuiMsg),
 }
