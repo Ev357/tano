@@ -9,16 +9,13 @@ jobs:
   tests:
     strategy:
       matrix:
-        nixPath:
-          - nixpkgs=https://github.com/NixOS/nixpkgs/archive/refs/heads/nixos-unstable.tar.gz
-          - nixpkgs=https://github.com/NixOS/nixpkgs/archive/refs/heads/nixos-25.11.tar.gz
         runner: [ubuntu-latest, ubuntu-24.04-arm]
     runs-on: ${{ matrix.runner }}
     steps:
     - uses: actions/checkout@v6
     - uses: cachix/install-nix-action@v31
       with:
-        nix_path: "${{ matrix.nixPath }}"
+        nix_path: nixpkgs=channel:nixos-unstable
     - uses: cachix/cachix-action@v16
       with:
         name: tano
