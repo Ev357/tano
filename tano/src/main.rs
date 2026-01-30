@@ -8,17 +8,17 @@ use tokio::sync::{mpsc, watch};
 
 use crate::{
     cmd::Cmd,
-    handle_message::{Handles, handle_message},
     logging::initialize_logging,
     model::Model,
     msg::Msg,
+    update::{handles::Handles, update},
 };
 
 mod cmd;
-mod handle_message;
 mod logging;
 mod model;
 mod msg;
+mod update;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -54,13 +54,13 @@ async fn run() -> Result<()> {
     loop {
         let command = tokio::select! {
             Some(msg) = msg_rx.recv() => {
-                handle_message(&model_tx, msg)
+                update(&model_tx, msg)
             }
             Some(backend_msg) = backend_msg_rx.recv() => {
-                handle_message(&model_tx, Msg::Backend(backend_msg))
+                update(&model_tx, Msg::Backend(backend_msg))
             }
             Some(watcher_msg) = watcher_msg_rx.recv() => {
-                handle_message(&model_tx, Msg::Watcher(watcher_msg))
+                update(&model_tx, Msg::Watcher(watcher_msg))
             }
             else => break
         };

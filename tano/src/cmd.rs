@@ -2,7 +2,7 @@ use std::pin::Pin;
 
 use color_eyre::Report;
 
-use crate::{handle_message::Handles, msg::Msg};
+use crate::{msg::Msg, update::handles::Handles};
 
 pub type CmdFuture = Pin<Box<dyn Future<Output = Msg> + Send>>;
 pub type CmdAction = Box<dyn FnOnce(Handles) -> CmdFuture + Send>;
