@@ -2412,6 +2412,7 @@ dependencies = [
  "color-eyre",
  "ratatui",
  "tano-database",
+ "tano-macro",
  "tokio",
 ]
 

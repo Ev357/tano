@@ -5,12 +5,10 @@ use ratatui::{
     widgets::{Block, BorderType},
 };
 
-use crate::components::component::Component;
-
 pub struct LoadingComponent;
 
-impl Component for LoadingComponent {
-    fn render(&mut self, frame: &mut Frame) {
+impl LoadingComponent {
+    pub fn render(frame: &mut Frame) {
         let block = Block::bordered().border_type(BorderType::Rounded);
         frame.render_widget(block, frame.area());
 
@@ -21,6 +19,4 @@ impl Component for LoadingComponent {
         );
         frame.render_widget(text, area);
     }
-
-    fn rerender(&mut self, _frame: &mut Frame, _props: &()) {}
 }

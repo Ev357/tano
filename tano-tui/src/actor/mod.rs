@@ -5,11 +5,7 @@ use tokio::sync::{
     watch::{self},
 };
 
-use crate::{
-    actor::cmd::TuiCmd,
-    components::{component::Component, root::RootComponent},
-    model::TuiModel,
-};
+use crate::{actor::cmd::TuiCmd, components::root::RootComponent, model::TuiModel};
 
 pub mod cmd;
 pub mod handle;
@@ -19,7 +15,6 @@ pub struct TuiActor<T: TuiModel> {
     receiver: mpsc::Receiver<TuiCmd>,
     model_rx: watch::Receiver<T>,
     terminal: DefaultTerminal,
-    root: RootComponent,
 }
 
 impl<T: TuiModel> TuiActor<T> {
@@ -30,7 +25,6 @@ impl<T: TuiModel> TuiActor<T> {
             receiver,
             model_rx,
             terminal,
-            root: RootComponent::default(),
         })
     }
 
@@ -42,16 +36,10 @@ impl<T: TuiModel> TuiActor<T> {
         }
     }
 
-    fn handle_update(&mut self) -> Result<()> {
+    fn render(&mut self) -> Result<()> {
         let model = self.model_rx.borrow();
         self.terminal
-            .draw(|frame| self.root.rerender(frame, model.view()))?;
-
-        Ok(())
-    }
-
-    pub fn render(&mut self) -> Result<()> {
-        self.terminal.draw(|frame| self.root.render(frame))?;
+            .draw(|frame| RootComponent::render(frame, model.view()))?;
 
         Ok(())
     }
@@ -64,7 +52,7 @@ pub async fn run_tui_actor<T: TuiModel>(mut actor: TuiActor<T>) -> Result<()> {
                 actor.handle_command(cmd).await;
             }
             Ok(_) = actor.model_rx.changed() => {
-                actor.handle_update()?;
+                actor.render()?;
             }
             else => break,
         }
