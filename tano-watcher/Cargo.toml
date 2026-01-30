@@ -1,14 +1,11 @@
 [package]
-name = "tano-config"
+name = "tano-watcher"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-tano-shared = { path = "../tano-shared" }
 tano-macro = { path = "../tano-macro" }
 color-eyre = "0.6.5"
-directories = "6.0.0"
-serde = { version = "1.0.228", features = ["derive"] }
+notify = "8.2.0"
 tokio = { version = "1.49.0", features = ["full"] }
-toml = "0.9.11"
 tracing = "0.1.44"

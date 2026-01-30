@@ -1,5 +1,6 @@
 use tano_backend::model::BackendModel;
 use tano_tui::{model::TuiModel, view::View};
+use tano_watcher::model::WatcherModel;
 
 use crate::model::{config_state::ConfigState, database_state::DatabaseState};
 
@@ -20,3 +21,5 @@ impl TuiModel for Model {
 }
 
 impl BackendModel for Model {}
+
+impl WatcherModel for Model {}

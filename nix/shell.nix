@@ -15,4 +15,8 @@ pkgs.mkShell {
     ''
       export DATABASE_URL="sqlite://$XDG_DATA_HOME/tano/database.db"
     '';
+
+  env = {
+    TANO_LOG = "tano=debug";
+  };
 }

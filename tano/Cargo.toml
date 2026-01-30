@@ -8,6 +8,13 @@ tano-config = { path = "../tano-config" }
 tano-database = { path = "../tano-database" }
 tano-tui = { path = "../tano-tui" }
 tano-backend = { path = "../tano-backend" }
+tano-watcher = { path = "../tano-watcher" }
+tano-shared = { path = "../tano-shared" }
+tano-macro = { path = "../tano-macro" }
 color-eyre = "0.6.5"
 tokio = { version = "1.49.0", features = ["full"] }
 crossterm = "0.29.0"
+tracing = "0.1.44"
+tracing-appender = "0.2.4"
+tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
+tracing-error = "0.2.1"
