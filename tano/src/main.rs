@@ -39,6 +39,7 @@ async fn run() -> Result<()> {
     let (backend_msg_tx, mut backend_msg_rx) = mpsc::channel::<BackendMsg>(8);
     let backend_handle = BackendActorHandle::new(model_rx.clone(), backend_msg_tx);
     let (watcher_msg_tx, mut watcher_msg_rx) = mpsc::channel::<WatcherMsg>(8);
+
     let watcher_handle = WatcherActorHandle::new(model_rx, watcher_msg_tx)?;
 
     let handles = Handles {
@@ -65,26 +66,34 @@ async fn run() -> Result<()> {
             else => break
         };
 
-        match command {
-            Cmd::Task(action) => {
-                let handles = handles.clone();
-                let tx = msg_tx.clone();
-                tokio::spawn(async move {
-                    let msg = action(handles).await;
-                    let _ = tx.send(msg).await;
-                });
+        let mut command_stack = vec![command];
+
+        while let Some(cmd) = command_stack.pop() {
+            match cmd {
+                Cmd::Task(action) => {
+                    let handles = handles.clone();
+                    let tx = msg_tx.clone();
+                    tokio::spawn(async move {
+                        let msg = action(handles).await;
+                        let _ = tx.send(msg).await;
+                    });
+                }
+                Cmd::Msg(msg) => {
+                    let _ = msg_tx.send(msg).await;
+                }
+                Cmd::Batch(cmds) => cmds
+                    .into_iter()
+                    .rev()
+                    .for_each(|cmd| command_stack.push(cmd)),
+                Cmd::Close => {
+                    msg_rx.close();
+                    return Ok(());
+                }
+                Cmd::Error(report) => {
+                    return Err(report);
+                }
+                Cmd::None => {}
             }
-            Cmd::Msg(msg) => {
-                let _ = msg_tx.send(msg).await;
-            }
-            Cmd::Close => {
-                msg_rx.close();
-                break;
-            }
-            Cmd::Error(report) => {
-                return Err(report);
-            }
-            Cmd::None => {}
         }
     }
 

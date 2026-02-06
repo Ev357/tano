@@ -10,5 +10,6 @@ pub struct Handles {
     pub config: ConfigActorHandle,
     pub database: DatabaseActorHandle,
     pub backend: BackendActorHandle,
+    #[allow(unused)]
     pub watcher: WatcherActorHandle,
 }

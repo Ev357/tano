@@ -1,15 +1,15 @@
+use tano_config::actor::msg::ConfigMsg;
 use tano_database::actor::mgs::DatabaseMsg;
-use tano_shared::{get_config_dir::get_config_dir, get_config_file::get_config_file};
-use tano_watcher::watch_type::WatchType;
 use tokio::sync::watch;
 
 use crate::{
     cmd::Cmd,
-    model::{Model, config_state::ConfigState, database_state::DatabaseState},
+    model::{Model, database_state::DatabaseState},
     msg::Msg,
     update::{
         backend::update_backend, config::update_config, database::update_database,
-        handles::Handles, tui::update_tui, watcher::update_watcher,
+        handles::Handles, tui::update_tui, utils::init_providers::init_providers,
+        watcher::update_watcher,
     },
 };
 
@@ -18,6 +18,7 @@ mod config;
 mod database;
 pub mod handles;
 mod tui;
+mod utils;
 mod watcher;
 
 pub fn update(model_tx: &watch::Sender<Model>, msg: Msg) -> Cmd {
@@ -27,20 +28,11 @@ pub fn update(model_tx: &watch::Sender<Model>, msg: Msg) -> Cmd {
                  config,
                  database,
                  tui,
-                 watcher,
                  ..
              }| async move {
-                let result = tokio::try_join!(
-                    config.load_config(),
-                    async {
-                        let config_dir = get_config_dir()?;
-                        let config_path = get_config_file(&config_dir);
-                        watcher.watch(config_path, WatchType::Config).await
-                    },
-                    database.load_database(),
-                    tui.render()
-                )
-                .map(|(config, _, _, _)| config);
+                let result =
+                    tokio::try_join!(config.load_config(), database.load_database(), tui.render())
+                        .map(|(config, _, _)| config);
 
                 Msg::InitDone { result }
             },
@@ -48,18 +40,27 @@ pub fn update(model_tx: &watch::Sender<Model>, msg: Msg) -> Cmd {
         Msg::InitDone { result } => match result {
             Ok(config) => {
                 model_tx.send_modify(|model| {
-                    model.config = ConfigState::Loaded(config);
                     model.database = DatabaseState::Loaded;
                 });
 
-                Cmd::task(|handles| async move {
-                    let songs = handles.database.get_songs().await;
+                Cmd::Batch(vec![
+                    Cmd::task(|handles| async move {
+                        let songs = handles.database.get_songs().await;
 
-                    Msg::Database(DatabaseMsg::SongsLoaded { songs })
-                })
+                        Msg::Database(DatabaseMsg::SongsLoaded { songs })
+                    }),
+                    Cmd::Msg(Msg::Config(ConfigMsg::ConfigLoaded(Ok(config)))),
+                ])
             }
             Err(report) => Cmd::Error(report),
         },
+        Msg::InitProviders { config } => {
+            model_tx.send_modify(|model| {
+                init_providers(model, config);
+            });
+
+            Cmd::None
+        }
         Msg::Restore => Cmd::task(|handles| async move {
             let restore_result = handles.backend.restore().await;
 

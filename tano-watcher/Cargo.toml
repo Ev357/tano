@@ -5,7 +5,10 @@ edition = "2024"
 
 [dependencies]
 tano-macro = { path = "../tano-macro" }
+tano-shared = { path = "../tano-shared" }
+tano-providers = { path = "../tano-providers" }
 color-eyre = "0.6.5"
 notify = "8.2.0"
 tokio = { version = "1.49.0", features = ["full"] }
 tracing = "0.1.44"
+shellexpand = "3.1.1"

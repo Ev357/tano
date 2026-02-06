@@ -13,6 +13,7 @@ pub enum Cmd {
     Error(Report),
     Close,
     Msg(Msg),
+    Batch(Vec<Self>),
 }
 
 impl Cmd {

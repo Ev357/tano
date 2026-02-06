@@ -11,6 +11,7 @@ tano-backend = { path = "../tano-backend" }
 tano-watcher = { path = "../tano-watcher" }
 tano-shared = { path = "../tano-shared" }
 tano-macro = { path = "../tano-macro" }
+tano-providers = { path = "../tano-providers" }
 color-eyre = "0.6.5"
 tokio = { version = "1.49.0", features = ["full"] }
 crossterm = "0.29.0"

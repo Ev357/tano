@@ -1,5 +1,9 @@
 use tano_config::actor::msg::ConfigMsg;
-use tano_watcher::{actor::msg::WatcherMsg, watch_type::WatchType};
+use tano_database::actor::mgs::DatabaseMsg;
+use tano_watcher::{
+    actor::msg::WatcherMsg,
+    watch_type::{WatchProvider, WatchType},
+};
 use tokio::sync::watch;
 
 use crate::{cmd::Cmd, model::Model, msg::Msg};
@@ -15,6 +19,13 @@ pub fn update_watcher(_model_tx: &watch::Sender<Model>, watcher_msg: WatcherMsg)
 
                 Msg::Config(ConfigMsg::ConfigLoaded(result))
             }),
+            WatchType::Provider(watch_provider) => match watch_provider {
+                WatchProvider::Local => Cmd::task(|handles| async move {
+                    let songs = handles.database.get_songs().await;
+
+                    Msg::Database(DatabaseMsg::SongsLoaded { songs })
+                }),
+            },
         },
     }
 }
