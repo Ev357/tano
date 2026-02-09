@@ -22,6 +22,7 @@
 
   outputs = {
     self,
+    fenix,
     nixpkgs,
     ...
   } @ inputs: let
@@ -39,7 +40,10 @@
     });
 
     devShells = forAllSystems (system: let
-      pkgs = nixpkgs.legacyPackages.${system};
+      pkgs = import nixpkgs {
+        inherit system;
+        overlays = [fenix.overlays.default];
+      };
     in {
       default = pkgs.callPackage ./nix/shell.nix {inherit inputs;};
     });

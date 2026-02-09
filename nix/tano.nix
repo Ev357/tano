@@ -1,12 +1,13 @@
 {
   lib,
+  stdenv,
+  makeRustPlatform,
   inputs,
-  pkgs,
   ...
 }: let
-  toolchain = inputs.fenix.packages.${pkgs.stdenv.hostPlatform.system}.minimal.toolchain;
+  toolchain = inputs.fenix.packages.${stdenv.hostPlatform.system}.default.toolchain;
 in
-  (pkgs.makeRustPlatform {
+  (makeRustPlatform {
     cargo = toolchain;
     rustc = toolchain;
   }).buildRustPackage rec {

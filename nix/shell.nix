@@ -4,7 +4,7 @@
   ...
 }:
 pkgs.mkShell {
-  packages = with pkgs.extend inputs.fenix.overlays.default; [
+  packages = with pkgs; [
     inputs.fenix.packages.${stdenv.hostPlatform.system}.default.toolchain
     rust-analyzer-nightly
     sqlx-cli
