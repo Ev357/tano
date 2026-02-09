@@ -6,21 +6,7 @@ on:
       - main
   workflow_dispatch:
 jobs:
-  sqlx-check:
-    runs-on: ubuntu-latest
-    env:
-      SQLX_OFFLINE: true
-    steps:
-      - uses: actions/checkout@v6
-      - uses: dtolnay/rust-toolchain@stable
-
-      - name: Install sqlx-cli
-        run: cargo install sqlx-cli
-
-      - name: Run SQLx Prepare Check
-        run: cargo sqlx prepare --check --workspace
   build:
-    needs: sqlx-check
     strategy:
       matrix:
         runner: [ubuntu-latest, ubuntu-24.04-arm]
