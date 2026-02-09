@@ -6,50 +6,33 @@
 }: let
   cfg = config.programs.tano;
 
-  localProviderType = lib.types.submodule {
-    options = {
-      type = lib.mkOption {
-        type = lib.types.enum ["local"];
-        description = "Local provider type";
-      };
-
-      path = lib.mkOption {
-        type = lib.types.str;
-        description = "Path to local music directory";
-      };
-    };
-  };
-
-  providerType = lib.types.oneOf [localProviderType];
-
-  settingsType = lib.types.submodule {
-    options = {
-      providers = lib.mkOption {
-        type = lib.types.listOf providerType;
-        default = [
-          {
-            type = "local";
-            path = "~/Music";
-          }
-        ];
-        description = "List of music providers";
-      };
-    };
-  };
+  tomlFormat = pkgs.formats.toml {};
 in {
   options.programs.tano = {
     enable = lib.mkEnableOption "tano";
 
-    package = lib.mkOption {
-      type = lib.types.package;
-      default = self.packages.${pkgs.stdenv.hostPlatform.system}.tano;
-      description = "The package to use";
-    };
+    package = lib.mkPackageOption self.packages.${pkgs.stdenv.hostPlatform.system} "tano" {nullable = true;};
 
     settings = lib.mkOption {
-      type = settingsType;
+      type = tomlFormat.type;
       default = {};
-      description = "Settings";
+      example =
+        lib.literalExpression
+        # nix
+        ''
+          {
+            providers = [
+              {
+                type = "local";
+                path = "~/Music";
+              }
+            ];
+          }
+        '';
+      description = ''
+        Configuration written to
+        {file}`$XDG_CONFIG_HOME/tano/config.toml`.
+      '';
     };
   };
 
@@ -57,7 +40,7 @@ in {
     home.packages = [cfg.package];
 
     xdg.configFile."tano/config.toml" = lib.mkIf (cfg.settings != {}) {
-      source = (pkgs.formats.toml {}).generate "config" cfg.settings;
+      source = tomlFormat.generate "tano-settings" cfg.settings;
     };
   };
 }
