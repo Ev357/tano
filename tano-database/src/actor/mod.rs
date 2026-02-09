@@ -75,9 +75,8 @@ impl DatabaseActor {
 
         sqlx::query(
             "
-            DELETE FROM songs 
-            WHERE provider_id IN (SELECT provider_id FROM batch_sync) 
-            AND path NOT IN (SELECT path FROM batch_sync)
+            DELETE FROM songs
+            WHERE path NOT IN (SELECT path FROM batch_sync)
             ",
         )
         .execute(&mut *tx)

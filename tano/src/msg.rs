@@ -5,6 +5,8 @@ use tano_database::actor::mgs::DatabaseMsg;
 use tano_tui::actor::msg::TuiMsg;
 use tano_watcher::actor::msg::WatcherMsg;
 
+use crate::update::providers::msg::ProvidersMsg;
+
 #[derive(Debug)]
 pub enum Msg {
     Init,
@@ -17,4 +19,5 @@ pub enum Msg {
     Tui(TuiMsg),
     Watcher(WatcherMsg),
     Config(ConfigMsg),
+    Providers(ProvidersMsg),
 }

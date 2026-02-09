@@ -7,8 +7,13 @@ use crate::{
     model::{Model, database_state::DatabaseState},
     msg::Msg,
     update::{
-        backend::update_backend, config::update_config, database::update_database,
-        handles::Handles, tui::update_tui, utils::init_providers::init_providers,
+        backend::update_backend,
+        config::update_config,
+        database::update_database,
+        handles::Handles,
+        providers::{msg::ProvidersMsg, update_providers},
+        tui::update_tui,
+        utils::init_providers::init_providers,
         watcher::update_watcher,
     },
 };
@@ -17,6 +22,7 @@ mod backend;
 mod config;
 mod database;
 pub mod handles;
+pub mod providers;
 mod tui;
 mod utils;
 mod watcher;
@@ -59,7 +65,7 @@ pub fn update(model_tx: &watch::Sender<Model>, msg: Msg) -> Cmd {
                 init_providers(model, config);
             });
 
-            Cmd::None
+            Cmd::Msg(Msg::Providers(ProvidersMsg::Sync))
         }
         Msg::Restore => Cmd::task(|handles| async move {
             let restore_result = handles.backend.restore().await;
@@ -75,5 +81,6 @@ pub fn update(model_tx: &watch::Sender<Model>, msg: Msg) -> Cmd {
         Msg::Watcher(watcher_msg) => update_watcher(model_tx, watcher_msg),
         Msg::Tui(tui_msg) => update_tui(model_tx, tui_msg),
         Msg::Config(config_msg) => update_config(model_tx, config_msg),
+        Msg::Providers(providers_msg) => update_providers(model_tx, providers_msg),
     }
 }
