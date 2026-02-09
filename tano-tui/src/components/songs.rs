@@ -22,7 +22,7 @@ impl SongsComponent {
             .iter()
             .enumerate()
             .map(|(index, song)| {
-                let title = if props.songs.selected_offset == Some(index) {
+                let title = if props.songs.selected_index == Some(index) {
                     format!("> {}", song.title)
                 } else {
                     format!("  {}", song.title)

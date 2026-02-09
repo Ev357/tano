@@ -8,10 +8,7 @@ pub fn update_database(model_tx: &watch::Sender<Model>, database_msg: DatabaseMs
     match database_msg {
         DatabaseMsg::SongsLoaded { songs } => match songs {
             Ok(songs) => {
-                let songs = ListState {
-                    items: songs,
-                    selected_offset: Some(0),
-                };
+                let songs = ListState::new(songs, 0);
 
                 model_tx.send_modify(|model| model.view = View::Songs(SongsProps { songs }));
 
