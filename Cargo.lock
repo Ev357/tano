@@ -2395,6 +2395,7 @@ dependencies = [
  "color-eyre",
  "directories",
  "serde",
+ "shellexpand",
  "tano-macro",
  "tano-shared",
  "tokio",
@@ -2420,7 +2421,10 @@ version = "0.1.0"
 name = "tano-providers"
 version = "0.1.0"
 dependencies = [
+ "color-eyre",
  "tano-config",
+ "tano-database",
+ "tokio",
 ]
 
 [[package]]
@@ -2448,7 +2452,6 @@ version = "0.1.0"
 dependencies = [
  "color-eyre",
  "notify",
- "shellexpand",
  "tano-macro",
  "tano-providers",
  "tano-shared",

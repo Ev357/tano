@@ -3,7 +3,7 @@ use tokio::sync::{mpsc, oneshot};
 
 use crate::{
     actor::{DatabaseActor, cmd::DatabaseCmd, run_database_actor},
-    song::Song,
+    song::{CreateSong, Song},
 };
 
 const DATABASE_ACTOR_KILLED: &str = "DatabaseActor task has been killed";
@@ -27,6 +27,17 @@ impl DatabaseActorHandle {
     pub async fn get_songs(&self) -> Result<Vec<Song>> {
         let (send, recv) = oneshot::channel();
         let cmd = DatabaseCmd::GetSongs { respond_to: send };
+
+        let _ = self.sender.send(cmd).await;
+        recv.await.expect(DATABASE_ACTOR_KILLED)
+    }
+
+    pub async fn sync_songs(&self, songs: Vec<CreateSong>) -> Result<()> {
+        let (send, recv) = oneshot::channel();
+        let cmd = DatabaseCmd::SyncSongs {
+            songs,
+            respond_to: send,
+        };
 
         let _ = self.sender.send(cmd).await;
         recv.await.expect(DATABASE_ACTOR_KILLED)

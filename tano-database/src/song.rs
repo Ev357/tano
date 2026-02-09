@@ -7,3 +7,10 @@ pub struct Song {
     pub provider_id: String,
     pub path: String,
 }
+
+#[derive(Debug)]
+pub struct CreateSong {
+    pub title: String,
+    pub provider_id: String,
+    pub path: String,
+}

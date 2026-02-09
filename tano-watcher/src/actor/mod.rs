@@ -1,6 +1,6 @@
 use std::{
     collections::{HashMap, HashSet},
-    path::{Path, PathBuf},
+    path::PathBuf,
     time::Duration,
 };
 
@@ -22,7 +22,9 @@ use tokio::{
 use crate::{
     actor::{cmd::WatcherCmd, msg::WatcherMsg},
     model::WatcherModel,
+    path_type::PathType,
     watch_entry::WatchEntry,
+    watch_mode::WatchMode,
     watch_type::{WatchProvider, WatchType},
 };
 
@@ -37,8 +39,8 @@ pub struct WatcherActor<T: WatcherModel> {
     watcher: INotifyWatcher,
     notify_rx: mpsc::Receiver<notify::Result<Event>>,
     watched_paths: HashMap<PathBuf, WatchEntry>,
-    latest_value: Option<Event>,
-    config_path: PathBuf,
+    latest_value: Option<(Event, WatchEntry)>,
+    config_entry: WatchEntry,
 }
 
 impl<T: WatcherModel> WatcherActor<T> {
@@ -46,7 +48,7 @@ impl<T: WatcherModel> WatcherActor<T> {
         receiver: mpsc::Receiver<WatcherCmd>,
         model_rx: watch::Receiver<T>,
         msg_tx: mpsc::Sender<WatcherMsg>,
-        config_path: PathBuf,
+        config_entry: WatchEntry,
     ) -> Result<Self> {
         let (notify_tx, notify_rx) = mpsc::channel(100);
         let mut watcher = RecommendedWatcher::new(
@@ -56,7 +58,7 @@ impl<T: WatcherModel> WatcherActor<T> {
             Config::default(),
         )?;
 
-        watcher.watch(&config_path, RecursiveMode::NonRecursive)?;
+        watcher.watch(&config_entry.path, RecursiveMode::NonRecursive)?;
 
         Ok(Self {
             receiver,
@@ -64,7 +66,7 @@ impl<T: WatcherModel> WatcherActor<T> {
             msg_tx,
             watcher,
             notify_rx,
-            config_path,
+            config_entry,
             watched_paths: HashMap::new(),
             latest_value: None,
         })
@@ -79,22 +81,16 @@ impl<T: WatcherModel> WatcherActor<T> {
             let model = self.model_rx.borrow();
             let providers = model.providers();
 
-            let mut entries = HashSet::from([WatchEntry {
-                path: self.config_path.clone(),
-                watch_type: WatchType::Config,
-            }]);
+            let mut entries = HashSet::from([self.config_entry.clone()]);
 
             for provider in providers {
                 match provider {
                     ProviderType::Local(local_provider) => {
-                        let path_str = local_provider.config.path.to_string_lossy();
-                        let expanded_cow = shellexpand::full(&path_str)?;
-
-                        let path = PathBuf::from(expanded_cow.as_ref());
-
                         entries.insert(WatchEntry {
-                            path,
+                            path: local_provider.config.path.clone(),
+                            path_type: PathType::Directory,
                             watch_type: WatchType::Provider(WatchProvider::Local),
+                            watch_mode: WatchMode::all(),
                         });
                     }
                 }
@@ -108,7 +104,7 @@ impl<T: WatcherModel> WatcherActor<T> {
         let removed: Vec<&WatchEntry> = watch_entries.difference(&new_watch_entries).collect();
 
         for watch_entry in removed {
-            self.unwatch(&watch_entry.path)?;
+            self.unwatch(watch_entry)?;
         }
 
         for watch_entry in added {
@@ -120,47 +116,40 @@ impl<T: WatcherModel> WatcherActor<T> {
 
     fn handle_debounce_event(&mut self, event: notify::Result<Event>) -> Result<()> {
         let event = event?;
-        if self.is_event_relevant(&event)? {
-            self.latest_value = Some(event);
+        if let Some(entry) = self.is_event_relevant(&event)? {
+            self.latest_value = Some((event, entry));
         }
 
         Ok(())
     }
 
     async fn handle_event(&mut self) -> Result<()> {
-        if let Some(mut event) = self.latest_value.take() {
-            let path = match event.paths.len() {
-                1 => event.paths.pop(),
-                2 => event.paths.pop(),
-                _ => None,
-            };
+        let (mut event, entry) = match self.latest_value.take() {
+            Some(value) => value,
+            None => return Ok(()),
+        };
 
-            if let Some(path) = path {
-                let watch_path = if path.is_file() {
-                    get_parent_dir(&path)?
-                } else {
-                    &path
-                };
+        let path = match event.paths.len() {
+            1 | 2 => match event.paths.pop() {
+                Some(path) => path,
+                None => return Ok(()),
+            },
+            _ => return Ok(()),
+        };
 
-                let watch_type = self.watched_paths.get(watch_path).cloned();
-
-                if let Some(watch_entry) = watch_type {
-                    let _ = self
-                        .msg_tx
-                        .send(WatcherMsg::FileChange {
-                            path,
-                            watch_type: watch_entry.watch_type,
-                        })
-                        .await;
-                }
-            }
-        }
+        let _ = self
+            .msg_tx
+            .send(WatcherMsg::FileChange {
+                path,
+                watch_type: entry.watch_type,
+            })
+            .await;
 
         Ok(())
     }
 
     fn watch(&mut self, watch_entry: WatchEntry) -> Result<()> {
-        let watch_path = if watch_entry.path.is_file() {
+        let watch_path = if matches!(watch_entry.path_type, PathType::File) {
             get_parent_dir(&watch_entry.path)?
         } else {
             &watch_entry.path
@@ -174,11 +163,11 @@ impl<T: WatcherModel> WatcherActor<T> {
         Ok(())
     }
 
-    fn unwatch(&mut self, path: &Path) -> Result<()> {
-        let watch_path = if path.is_file() {
-            get_parent_dir(path)?
+    fn unwatch(&mut self, watch_entry: &WatchEntry) -> Result<()> {
+        let watch_path = if matches!(watch_entry.path_type, PathType::File) {
+            get_parent_dir(&watch_entry.path)?
         } else {
-            path
+            &watch_entry.path
         };
 
         self.watcher.unwatch(watch_path)?;
@@ -187,35 +176,44 @@ impl<T: WatcherModel> WatcherActor<T> {
         Ok(())
     }
 
-    fn is_event_relevant(&self, event: &Event) -> Result<bool> {
-        let is_kind_relevant = matches!(
-            event.kind,
-            EventKind::Create(_)
-                | EventKind::Modify(
-                    ModifyKind::Data(_)
-                        | ModifyKind::Name(RenameMode::To | RenameMode::Both)
-                        | ModifyKind::Any
-                        | ModifyKind::Other
-                )
-        );
-
-        if !is_kind_relevant {
-            return Ok(false);
-        }
-
-        let result = match event.paths.as_slice() {
-            [path] => {
-                let parent = get_parent_dir(path)?;
-                self.watched_paths.contains_key(path) || self.watched_paths.contains_key(parent)
-            }
-            [_, target] => {
-                let parent = get_parent_dir(target)?;
-                self.watched_paths.contains_key(target) || self.watched_paths.contains_key(parent)
-            }
-            _ => false,
+    fn is_event_relevant(&self, event: &Event) -> Result<Option<WatchEntry>> {
+        let path = match event.paths.as_slice() {
+            [path] | [_, path] => path,
+            _ => return Ok(None),
         };
 
-        Ok(result)
+        let entry = match self.watched_paths.get(path) {
+            Some(entry) => entry,
+            None => {
+                let parent = get_parent_dir(path)?;
+
+                match self.watched_paths.get(parent) {
+                    Some(entry) => entry,
+                    None => return Ok(None),
+                }
+            }
+        };
+
+        let matches_create = entry.watch_mode.create
+            && matches!(
+                event.kind,
+                EventKind::Create(_)
+                    | EventKind::Modify(ModifyKind::Name(RenameMode::To | RenameMode::Both))
+            );
+
+        let matches_modify = entry.watch_mode.modify
+            && matches!(
+                event.kind,
+                EventKind::Modify(ModifyKind::Data(_) | ModifyKind::Any | ModifyKind::Other)
+            );
+
+        let matches_remove = entry.watch_mode.remove && matches!(event.kind, EventKind::Remove(_));
+
+        if !matches_create && !matches_modify && !matches_remove {
+            return Ok(None);
+        }
+
+        Ok(Some(entry.clone()))
     }
 }
 

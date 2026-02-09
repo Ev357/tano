@@ -5,6 +5,10 @@ use tokio::sync::{mpsc, watch};
 use crate::{
     actor::{WatcherActor, cmd::WatcherCmd, msg::WatcherMsg, run_watcher_actor},
     model::WatcherModel,
+    path_type::PathType,
+    watch_entry::WatchEntry,
+    watch_mode::WatchMode,
+    watch_type::WatchType,
 };
 
 #[allow(unused)]
@@ -26,7 +30,17 @@ impl WatcherActorHandle {
         let config_dir = get_config_dir()?;
         let config_path = get_config_file(&config_dir);
 
-        let actor = WatcherActor::new(receiver, model_rx, msg_tx, config_path)?;
+        let actor = WatcherActor::new(
+            receiver,
+            model_rx,
+            msg_tx,
+            WatchEntry {
+                path: config_path,
+                path_type: PathType::File,
+                watch_type: WatchType::Config,
+                watch_mode: WatchMode::default().create().modify(),
+            },
+        )?;
 
         tokio::spawn(run_watcher_actor(actor));
 
