@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT id, title, provider_id, path FROM songs",
+  "query": "SELECT id, title, provider_id, path FROM songs ORDER BY title",
   "describe": {
     "columns": [
       {
@@ -34,5 +34,5 @@
       false
     ]
   },
-  "hash": "8ad1f44ae3b9393672a88f05f50f18ae5da33af5e2b283d4be37b53afc454af6"
+  "hash": "2de49aae50d7ed4211e9cbe8d55fb92282f9135bfad80bf81648310686c399ca"
 }
