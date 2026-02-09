@@ -14,6 +14,7 @@ pkgs.mkShell {
     # bash
     ''
       export DATABASE_URL="sqlite://$XDG_DATA_HOME/tano/database.db"
+      export PATH="$PATH:$HOME/.cargo/bin"
     '';
 
   env = {
