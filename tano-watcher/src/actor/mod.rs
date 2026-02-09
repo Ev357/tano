@@ -58,7 +58,15 @@ impl<T: WatcherModel> WatcherActor<T> {
             Config::default(),
         )?;
 
-        watcher.watch(&config_entry.path, RecursiveMode::NonRecursive)?;
+        let parent = get_parent_dir(&config_entry.path)?;
+
+        let watched_paths = if parent.try_exists()? {
+            watcher.watch(parent, RecursiveMode::NonRecursive)?;
+
+            HashMap::from([(parent.to_path_buf(), config_entry.clone())])
+        } else {
+            HashMap::new()
+        };
 
         Ok(Self {
             receiver,
@@ -67,7 +75,7 @@ impl<T: WatcherModel> WatcherActor<T> {
             watcher,
             notify_rx,
             config_entry,
-            watched_paths: HashMap::new(),
+            watched_paths,
             latest_value: None,
         })
     }
@@ -81,7 +89,12 @@ impl<T: WatcherModel> WatcherActor<T> {
             let model = self.model_rx.borrow();
             let providers = model.providers();
 
-            let mut entries = HashSet::from([self.config_entry.clone()]);
+            let config_parent = get_parent_dir(&self.config_entry.path)?;
+            let mut entries = if config_parent.try_exists()? {
+                HashSet::from([self.config_entry.clone()])
+            } else {
+                HashSet::new()
+            };
 
             for provider in providers {
                 match provider {
