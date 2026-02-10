@@ -1,15 +1,16 @@
-use color_eyre::eyre::Result;
-use tokio::sync::{mpsc, oneshot, watch};
+use tokio::sync::{mpsc, watch};
 
 use crate::{
     actor::{BackendActor, cmd::BackendCmd, msg::BackendMsg, run_backend_actor},
     model::BackendModel,
 };
 
+#[allow(unused)]
 const BACKEND_ACTOR_KILLED: &str = "BackendActor task has been killed";
 
 #[derive(Clone)]
 pub struct BackendActorHandle {
+    #[allow(unused)]
     sender: mpsc::Sender<BackendCmd>,
 }
 
@@ -23,13 +24,5 @@ impl BackendActorHandle {
         tokio::spawn(run_backend_actor(actor));
 
         Self { sender }
-    }
-
-    pub async fn restore(&self) -> Result<()> {
-        let (send, recv) = oneshot::channel();
-        let cmd = BackendCmd::Restore { respond_to: send };
-
-        let _ = self.sender.send(cmd).await;
-        recv.await.expect(BACKEND_ACTOR_KILLED)
     }
 }

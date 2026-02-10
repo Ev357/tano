@@ -5,4 +5,7 @@ pub enum TuiCmd {
     Render {
         respond_to: oneshot::Sender<Result<()>>,
     },
+    Restore {
+        respond_to: oneshot::Sender<Result<()>>,
+    },
 }

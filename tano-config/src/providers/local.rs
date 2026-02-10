@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use color_eyre::eyre::eyre;
 use serde::{Deserialize, Deserializer, de::Error};
 
 #[derive(Debug, Deserialize, Clone)]
@@ -14,6 +15,11 @@ where
 {
     let path_str: String = Deserialize::deserialize(deserializer)?;
     let expanded_cow = shellexpand::full(&path_str).map_err(D::Error::custom)?;
+
+    let path = PathBuf::from(expanded_cow.as_ref());
+    if !path.is_dir() {
+        return Err(D::Error::custom(eyre!("Path is not valid: {path:?}")));
+    }
 
     Ok(PathBuf::from(expanded_cow.as_ref()))
 }

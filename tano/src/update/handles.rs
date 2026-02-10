@@ -9,6 +9,7 @@ pub struct Handles {
     pub tui: TuiActorHandle,
     pub config: ConfigActorHandle,
     pub database: DatabaseActorHandle,
+    #[allow(unused)]
     pub backend: BackendActorHandle,
     #[allow(unused)]
     pub watcher: WatcherActorHandle,

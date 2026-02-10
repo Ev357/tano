@@ -1,11 +1,7 @@
-use std::io::{self, stdout};
+use std::io::{self};
 
-use color_eyre::eyre::{Context, Result};
-use crossterm::{
-    event::{Event, EventStream},
-    execute,
-    terminal::{LeaveAlternateScreen, disable_raw_mode},
-};
+use color_eyre::eyre::Result;
+use crossterm::event::{Event, EventStream};
 use tokio::sync::{
     mpsc,
     watch::{self},
@@ -42,12 +38,8 @@ impl<T: BackendModel> BackendActor<T> {
         }
     }
 
-    async fn handle_command(&mut self, cmd: BackendCmd) {
-        match cmd {
-            BackendCmd::Restore { respond_to } => {
-                let _ = respond_to.send(self.restore());
-            }
-        }
+    async fn handle_command(&mut self, _cmd: BackendCmd) {
+        // TODO: handle command
     }
 
     fn handle_update(&self) {
@@ -56,17 +48,6 @@ impl<T: BackendModel> BackendActor<T> {
 
     async fn handle_event(&self, event: Result<Event, io::Error>) {
         let _ = self.msg_tx.send(BackendMsg::Event(event)).await;
-    }
-
-    fn restore(&self) -> Result<()> {
-        let result: Result<()> = (|| {
-            disable_raw_mode()?;
-            execute!(stdout(), LeaveAlternateScreen)?;
-
-            Ok(())
-        })();
-
-        result.context("Failed to restore terminal")
     }
 }
 

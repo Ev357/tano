@@ -1,11 +1,18 @@
+use std::io::Stdout;
+
 use color_eyre::eyre::Result;
-use ratatui::DefaultTerminal;
+use ratatui::{Terminal, backend::CrosstermBackend};
 use tokio::sync::{
     mpsc,
     watch::{self},
 };
 
-use crate::{actor::cmd::TuiCmd, components::root::RootComponent, model::TuiModel};
+use crate::{
+    actor::cmd::TuiCmd,
+    components::root::RootComponent,
+    model::TuiModel,
+    utils::{restore::restore, try_init::try_init},
+};
 
 pub mod cmd;
 pub mod handle;
@@ -14,12 +21,12 @@ pub mod msg;
 pub struct TuiActor<T: TuiModel> {
     receiver: mpsc::Receiver<TuiCmd>,
     model_rx: watch::Receiver<T>,
-    terminal: DefaultTerminal,
+    terminal: Terminal<CrosstermBackend<Stdout>>,
 }
 
 impl<T: TuiModel> TuiActor<T> {
     pub fn new(receiver: mpsc::Receiver<TuiCmd>, model_rx: watch::Receiver<T>) -> Result<Self> {
-        let terminal = ratatui::try_init()?;
+        let terminal = try_init()?;
 
         Ok(Self {
             receiver,
@@ -32,6 +39,9 @@ impl<T: TuiModel> TuiActor<T> {
         match cmd {
             TuiCmd::Render { respond_to } => {
                 let _ = respond_to.send(self.render());
+            }
+            TuiCmd::Restore { respond_to } => {
+                let _ = respond_to.send(restore());
             }
         }
     }

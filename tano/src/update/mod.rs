@@ -68,7 +68,7 @@ pub fn update(model_tx: &watch::Sender<Model>, msg: Msg) -> Cmd {
             Cmd::Msg(Msg::Providers(ProvidersMsg::Sync))
         }
         Msg::Restore => Cmd::task(|handles| async move {
-            let restore_result = handles.backend.restore().await;
+            let restore_result = handles.tui.restore().await;
 
             Msg::Close { restore_result }
         }),
