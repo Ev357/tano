@@ -2424,7 +2424,9 @@ dependencies = [
  "color-eyre",
  "tano-config",
  "tano-database",
+ "tano-macro",
  "tokio",
+ "tracing",
 ]
 
 [[package]]

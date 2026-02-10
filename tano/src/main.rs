@@ -90,6 +90,7 @@ async fn run() -> Result<()> {
                     return Ok(());
                 }
                 Cmd::Error(report) => {
+                    handles.backend.restore().await?;
                     return Err(report);
                 }
                 Cmd::None => {}
