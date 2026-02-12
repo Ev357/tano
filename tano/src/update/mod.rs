@@ -44,7 +44,7 @@ pub fn update(model_tx: &watch::Sender<Model>, msg: Msg) -> Cmd {
             },
         ),
         Msg::InitDone { result } => match result {
-            Ok(config) => {
+            Ok(_) => {
                 model_tx.send_modify(|model| {
                     model.database = DatabaseState::Loaded;
                 });
@@ -55,7 +55,7 @@ pub fn update(model_tx: &watch::Sender<Model>, msg: Msg) -> Cmd {
 
                         Msg::Database(DatabaseMsg::SongsLoaded { songs })
                     }),
-                    Cmd::Msg(Msg::Config(ConfigMsg::ConfigLoaded(Ok(config)))),
+                    Cmd::Msg(Msg::Config(ConfigMsg::ConfigLoaded(result))),
                 ])
             }
             Err(report) => Cmd::Error(report),
