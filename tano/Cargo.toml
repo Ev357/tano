@@ -13,7 +13,7 @@ tano-shared = { path = "../tano-shared" }
 tano-macro = { path = "../tano-macro" }
 tano-providers = { path = "../tano-providers" }
 color-eyre = "0.6.5"
-tokio = { version = "1.49.0", features = ["full"] }
+tokio = { version = "1.50.0", features = ["full"] }
 crossterm = "0.29.0"
 tracing = "0.1.44"
 tracing-appender = "0.2.4"
