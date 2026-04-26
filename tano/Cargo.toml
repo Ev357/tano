@@ -16,6 +16,6 @@ color-eyre = "0.6.5"
 tokio = { version = "1.51.1", features = ["full"] }
 crossterm = "0.29.0"
 tracing = "0.1.44"
-tracing-appender = "0.2.4"
+tracing-appender = "0.2.5"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 tracing-error = "0.2.1"
