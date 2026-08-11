@@ -1,4 +1,4 @@
-use std::{collections::HashMap, ffi::c_void, fs, path::Path};
+use std::{collections::HashMap, ffi::c_void, fs};
 
 use color_eyre::eyre::{Result, eyre};
 use dispatch2::{DispatchQueue, DispatchRetained};
@@ -60,7 +60,7 @@ impl Watcher for FsEventWatcher {
     }
 
     fn watch(&mut self, watch_entry: WatchEntry) -> Result<()> {
-        let canonical_path = fs::canonicalize(watch_entry.path)?;
+        let canonical_path = fs::canonicalize(&watch_entry.path)?;
         let path = canonical_path
             .to_str()
             .ok_or_else(|| eyre!("Invalid UTF-8 in canonical path"))?;
@@ -70,6 +70,7 @@ impl Watcher for FsEventWatcher {
         let _ = self.cmd_tx.send(DebouncerCommand::Watch {
             id: watch_entry.id,
             path: path.to_string(),
+            filter: watch_entry.filter,
         });
 
         self.recreate()?;

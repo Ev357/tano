@@ -3,12 +3,12 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use crate::watch_id::WatchId;
+use crate::{watch_filter::WatchFilter, watch_id::WatchId};
 
 #[derive(Debug, Default)]
 pub struct WatchMap {
     paths_map: HashMap<PathBuf, HashSet<WatchId>>,
-    id_map: HashMap<WatchId, PathBuf>,
+    id_map: HashMap<WatchId, (PathBuf, WatchFilter)>,
 }
 
 impl WatchMap {
@@ -16,15 +16,15 @@ impl WatchMap {
         Self::default()
     }
 
-    pub fn insert(&mut self, path: impl AsRef<Path>, id: WatchId) {
+    pub fn insert<T: AsRef<Path>>(&mut self, path: T, id: WatchId, filter: WatchFilter) {
         let path_buf = path.as_ref().to_path_buf();
-        self.id_map.insert(id, path_buf.clone());
+        self.id_map.insert(id, (path_buf.clone(), filter));
         self.paths_map.entry(path_buf).or_default().insert(id);
     }
 
     pub fn remove_by_id(&mut self, id: WatchId) {
-        let path = match self.id_map.remove(&id) {
-            Some(path) => path,
+        let (path, _) = match self.id_map.remove(&id) {
+            Some(entry) => entry,
             None => return,
         };
 
@@ -40,7 +40,25 @@ impl WatchMap {
         }
     }
 
-    pub fn get_matches(&self, event_path: impl AsRef<Path>) -> Vec<WatchId> {
+    pub fn get_filter<T: AsRef<Path>>(&self, event_path: T) -> WatchFilter {
+        let matches = self.get_matches(event_path);
+
+        if matches.is_empty() {
+            return WatchFilter::empty();
+        }
+
+        let mut combined = WatchFilter::all();
+
+        for id in matches {
+            if let Some((_, filter)) = self.id_map.get(&id) {
+                combined &= *filter;
+            }
+        }
+
+        combined
+    }
+
+    pub fn get_matches<T: AsRef<Path>>(&self, event_path: T) -> Vec<WatchId> {
         let mut matches = Vec::new();
 
         for (depth, ancestor) in event_path.as_ref().ancestors().enumerate() {

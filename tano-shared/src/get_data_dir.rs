@@ -1,15 +1,24 @@
 use std::{env, path::PathBuf};
 
 use color_eyre::eyre::{Result, eyre};
-
-use crate::project_directory::project_directory;
+use directories::BaseDirs;
 
 pub fn get_data_dir() -> Result<PathBuf> {
     if let Ok(path) = env::var("TANO_DATA") {
         return Ok(PathBuf::from(path));
-    } else if let Some(proj_dirs) = project_directory() {
-        return Ok(proj_dirs.data_local_dir().to_path_buf());
     }
 
-    Err(eyre!("Unable to find data directory for tano"))
+    if let Ok(path) = env::var("XDG_DATA_HOME") {
+        return Ok(PathBuf::from(path).join("tano"));
+    }
+
+    if let Some(base_dirs) = BaseDirs::new() {
+        return Ok(base_dirs
+            .home_dir()
+            .join(".local")
+            .join("share")
+            .join("tano"));
+    }
+
+    Err(eyre!("Unable to find data directory"))
 }

@@ -14,14 +14,23 @@ use crate::{
         watch_map::WatchMap,
     },
     watch_event::WatchEvent,
+    watch_filter::WatchFilter,
     watch_id::WatchId,
 };
 
 #[derive(Debug)]
 pub enum DebouncerCommand {
-    Event { event: FsEvent },
-    Watch { id: WatchId, path: String },
-    Unwatch { id: WatchId },
+    Event {
+        event: FsEvent,
+    },
+    Watch {
+        id: WatchId,
+        path: String,
+        filter: WatchFilter,
+    },
+    Unwatch {
+        id: WatchId,
+    },
 }
 
 pub fn debouncer_task(
@@ -40,7 +49,17 @@ pub fn debouncer_task(
                 Some(cmd) = cmd_rx.recv() => {
                     match cmd {
                         DebouncerCommand::Event { event } => {
-                            if event.flag.contains(FsEventFlag::ITEM_IS_DIR) {
+                            let filter = watch_map.get_filter(&event.path);
+
+                            if filter.contains(WatchFilter::IGNORE_DIRECTORIES)
+                                && event.flag.contains(FsEventFlag::ITEM_IS_DIR)
+                            {
+                                continue;
+                            }
+
+                            if filter.contains(WatchFilter::IGNORE_FILES)
+                                && event.flag.contains(FsEventFlag::ITEM_IS_FILE)
+                            {
                                 continue;
                             }
 
@@ -86,8 +105,8 @@ pub fn debouncer_task(
 
                             active_timers.insert(event.path, (abort_handle, event.id));
                         }
-                        DebouncerCommand::Watch { id, path } => {
-                            watch_map.insert(path, id);
+                        DebouncerCommand::Watch { id, path, filter } => {
+                            watch_map.insert(path, id, filter);
                         }
                         DebouncerCommand::Unwatch { id } => {
                             watch_map.remove_by_id(id);
