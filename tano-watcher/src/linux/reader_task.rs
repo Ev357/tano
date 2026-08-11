@@ -1,5 +1,5 @@
 use std::{
-    ffi::{self},
+    ffi::{CStr, c_char},
     fs::File as StdFile,
     io::Read,
     mem, ptr,
@@ -51,9 +51,9 @@ pub fn reader_task(
                         buffer
                             .as_ptr()
                             .add(offset + mem::size_of::<libc::inotify_event>())
-                            as *const i8
+                            as *const c_char
                     };
-                    let c_str = unsafe { ffi::CStr::from_ptr(name_ptr) };
+                    let c_str = unsafe { CStr::from_ptr(name_ptr) };
                     event_name = Some(c_str.to_string_lossy().to_string());
                 }
 
