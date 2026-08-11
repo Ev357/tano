@@ -1,10 +1,10 @@
 {
   "db_name": "SQLite",
-  "query": "\n        INSERT INTO songs (provider_id, album_id, title, track_number, duration, year)\n        VALUES (?, ?, ?, ?, ?, ?)\n        RETURNING id AS \"id!\"\n        ",
+  "query": "\n        SELECT id\n        FROM songs\n        ORDER BY title\n        ",
   "describe": {
     "columns": [
       {
-        "name": "id!",
+        "name": "id",
         "ordinal": 0,
         "type_info": "Integer",
         "origin": {
@@ -16,11 +16,11 @@
       }
     ],
     "parameters": {
-      "Right": 6
+      "Right": 0
     },
     "nullable": [
-      null
+      false
     ]
   },
-  "hash": "a34e62a0c3f7e5ea09054db6e7a2db33c05ce7633eeb95563191fe99cf455d77"
+  "hash": "32e7c8d5b389e5d03415f34a8ba6b5cfa5155a46926ed1ddbb682393592314ce"
 }
