@@ -3,7 +3,10 @@ use tokio::sync::watch;
 
 use crate::{
     cmd::Cmd,
-    model::{Model, config_state::ConfigState},
+    model::{
+        Model,
+        config_state::{ConfigState, ConfigWatchState},
+    },
     msg::Msg,
 };
 
@@ -11,7 +14,8 @@ pub fn update_config(model_tx: &watch::Sender<Model>, config_msg: ConfigMsg) -> 
     match config_msg {
         ConfigMsg::ConfigLoaded(config) => match config {
             Ok(config) => {
-                model_tx.send_modify(|model| model.config = ConfigState::Loaded);
+                let watch_state = ConfigWatchState::resolve();
+                model_tx.send_modify(|model| model.config = ConfigState::Loaded(watch_state));
 
                 Cmd::Msg(Msg::InitProviders {
                     config: config.providers,

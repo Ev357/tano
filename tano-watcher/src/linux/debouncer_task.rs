@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, path::Path};
 
 use color_eyre::eyre::Result;
 use tokio::{
@@ -11,6 +11,7 @@ use crate::{
     constants::DEBOUNCE_DURATION,
     linux::inotify_event::{INotifyEvent, INotifyMask},
     watch_event::WatchEvent,
+    watch_filter::WatchFilter,
     watch_id::WatchId,
 };
 
@@ -23,6 +24,7 @@ pub enum DebouncerCommand {
         wd: i32,
         path: String,
         watch_id: WatchId,
+        filter: WatchFilter,
     },
     Unwatch {
         wd: i32,
@@ -35,7 +37,7 @@ pub fn debouncer_task(
 ) -> JoinHandle<()> {
     tokio::spawn(async move {
         let mut watch_map = HashMap::new();
-        let mut active_timers: HashMap<(i32, String), AbortHandle> = HashMap::new();
+        let mut active_timers: HashMap<(i32, Option<String>), AbortHandle> = HashMap::new();
         let mut pending_moves = HashMap::new();
 
         let mut join_set = JoinSet::new();
@@ -45,12 +47,20 @@ pub fn debouncer_task(
                 Some(cmd) = cmd_rx.recv() => {
                     match cmd {
                         DebouncerCommand::Event { event } => {
-                            let file_name = match &event.name {
-                                Some(name) => name.clone(),
-                                None => continue,
-                            };
+                            let filter = watch_map
+                                .get(&event.wd)
+                                .map(|(_, _, filter)| *filter)
+                                .unwrap_or(WatchFilter::empty());
 
-                            if event.mask.contains(INotifyMask::ISDIR) {
+                            let file_name = event.name.clone();
+
+                            if filter.contains(WatchFilter::IGNORE_DIRECTORIES)
+                                && event.mask.contains(INotifyMask::ISDIR)
+                            {
+                                continue;
+                            }
+
+                            if filter.contains(WatchFilter::IGNORE_FILES) && !event.mask.contains(INotifyMask::ISDIR) {
                                 continue;
                             }
 
@@ -80,8 +90,8 @@ pub fn debouncer_task(
 
                             active_timers.insert((event.wd, file_name), abort_handle);
                         }
-                        DebouncerCommand::Watch { wd, path, watch_id } => {
-                            watch_map.insert(wd, (path, watch_id));
+                        DebouncerCommand::Watch { wd, path, watch_id, filter } => {
+                            watch_map.insert(wd, (path, watch_id, filter));
                         }
                         DebouncerCommand::Unwatch { wd } => {
                             watch_map.remove(&wd);
@@ -112,8 +122,11 @@ pub fn debouncer_task(
                     }
 
                     let (wd, file_name) = key;
-                    if let Some((base_path, watch_id)) = watch_map.get(wd) {
-                        let full_path = format!("{}/{}", base_path.trim_end_matches('/'), file_name);
+                    if let Some((base_path, watch_id, _)) = watch_map.get(wd) {
+                        let full_path = match file_name {
+                            Some(name) => Path::new(base_path).join(name).to_string_lossy().to_string(),
+                            None => base_path.clone(),
+                        };
                         let event = WatchEvent {
                             path: full_path,
                             watch_id: *watch_id,

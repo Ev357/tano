@@ -19,6 +19,7 @@ use crate::{
         debouncer_task::{DebouncerCommand, debouncer_task},
         fsevent_callback::fsevent_callback,
     },
+    watch_entry::WatchEntry,
     watch_event::WatchEvent,
     watch_id::WatchId,
     watcher::Watcher,
@@ -58,16 +59,16 @@ impl Watcher for FsEventWatcher {
         })
     }
 
-    fn watch<T: AsRef<Path>>(&mut self, watch_id: WatchId, path: T) -> Result<()> {
-        let canonical_path = fs::canonicalize(path)?;
+    fn watch(&mut self, watch_entry: WatchEntry) -> Result<()> {
+        let canonical_path = fs::canonicalize(watch_entry.path)?;
         let path = canonical_path
             .to_str()
             .ok_or_else(|| eyre!("Invalid UTF-8 in canonical path"))?;
 
-        self.paths.insert(watch_id, path.to_string());
+        self.paths.insert(watch_entry.id, path.to_string());
 
         let _ = self.cmd_tx.send(DebouncerCommand::Watch {
-            id: watch_id,
+            id: watch_entry.id,
             path: path.to_string(),
         });
 

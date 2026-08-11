@@ -4,7 +4,6 @@ use std::{
     fs::{self, File as StdFile},
     io::{Error, ErrorKind},
     os::unix::io::{FromRawFd, RawFd},
-    path::Path,
 };
 
 use color_eyre::eyre::Result;
@@ -19,6 +18,7 @@ use crate::{
         debouncer_task::{DebouncerCommand, debouncer_task},
         reader_task::reader_task,
     },
+    watch_entry::WatchEntry,
     watch_event::WatchEvent,
     watch_id::WatchId,
     watcher::Watcher,
@@ -62,8 +62,8 @@ impl Watcher for INotifyWatcher {
         })
     }
 
-    fn watch<T: AsRef<Path>>(&mut self, watch_id: WatchId, path: T) -> Result<()> {
-        let canonical_path = fs::canonicalize(path)?;
+    fn watch(&mut self, watch_entry: WatchEntry) -> Result<()> {
+        let canonical_path = fs::canonicalize(watch_entry.path)?;
         let path = canonical_path.to_str().ok_or_else(|| {
             Error::new(ErrorKind::InvalidInput, "Invalid UTF-8 in canonical path")
         })?;
@@ -84,12 +84,13 @@ impl Watcher for INotifyWatcher {
             return Err(Error::last_os_error().into());
         }
 
-        self.id_to_wd.insert(watch_id, wd);
+        self.id_to_wd.insert(watch_entry.id, wd);
 
         let _ = self.cmd_tx.send(DebouncerCommand::Watch {
             wd,
             path: path.to_string(),
-            watch_id,
+            watch_id: watch_entry.id,
+            filter: watch_entry.filter,
         });
 
         Ok(())

@@ -92,8 +92,7 @@ impl<T: WatcherModel> WatcherActor<T> {
     }
 
     fn watch(&mut self, watch_entry: WatchEntry) -> Result<()> {
-        self.watcher
-            .watch(watch_entry.id, watch_entry.path.clone())?;
+        self.watcher.watch(watch_entry.clone())?;
         self.entries.insert(watch_entry);
 
         Ok(())

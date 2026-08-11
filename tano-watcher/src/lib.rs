@@ -16,9 +16,9 @@ use macos::FsEventWatcher as PlatformWatcher;
 pub mod actor;
 pub mod constants;
 pub mod model;
-pub mod path_type;
 pub mod watch_entry;
 pub mod watch_event;
+pub mod watch_filter;
 pub mod watch_id;
 pub mod watcher;
 
