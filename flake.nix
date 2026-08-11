@@ -26,7 +26,7 @@
     nixpkgs,
     ...
   } @ inputs: let
-    systems = ["x86_64-linux" "aarch64-linux"];
+    systems = ["x86_64-linux" "aarch64-linux" "aarch64-darwin"];
 
     forAllSystems = nixpkgs.lib.genAttrs systems;
   in {
@@ -35,7 +35,7 @@
     packages = forAllSystems (system: let
       pkgs = nixpkgs.legacyPackages.${system};
     in {
-      tano = pkgs.callPackage ./nix/tano.nix {inherit inputs;};
+      tano = pkgs.callPackage ./nix/tano.nix {inherit inputs systems;};
       default = self.packages.${system}.tano;
     });
 

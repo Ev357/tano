@@ -41,5 +41,6 @@ pub fn update_backend(model_tx: &watch::Sender<Model>, backend_msg: BackendMsg) 
             },
             Err(error) => Cmd::Error(error.into()),
         },
+        BackendMsg::Error(report) => Cmd::Error(report),
     }
 }

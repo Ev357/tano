@@ -39,7 +39,7 @@ impl<T: BackendModel> BackendActor<T> {
     }
 
     async fn handle_command(&mut self, _cmd: BackendCmd) {
-        // TODO: handle command
+        unimplemented!()
     }
 
     fn handle_update(&self) {
@@ -51,26 +51,35 @@ impl<T: BackendModel> BackendActor<T> {
     }
 }
 
-pub async fn run_backend_actor<T: BackendModel>(mut actor: BackendActor<T>) -> Result<()> {
+pub async fn run_backend_actor<T: BackendModel>(mut actor: BackendActor<T>) {
     loop {
-        tokio::select! {
+        let result = tokio::select! {
             Some(cmd) = actor.receiver.recv() => {
                 actor.handle_command(cmd).await;
+
+                Ok(())
             }
             Ok(_) = actor.model_rx.changed() => {
                 actor.handle_update();
+
+                Ok(())
             }
             maybe_event = actor.reader.next() => {
                 match maybe_event {
                     Some(event) => {
                         actor.handle_event(event).await;
+
+                        Ok(())
                     }
-                    None => break,
+                    None => return,
                 }
             }
-            else => break,
+            else => return,
+        };
+
+        if let Err(error) = result {
+            let _ = actor.msg_tx.send(BackendMsg::Error(error)).await;
+            return;
         }
     }
-
-    Ok(())
 }

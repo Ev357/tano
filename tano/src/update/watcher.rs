@@ -16,5 +16,6 @@ pub fn update_watcher(_model_tx: &watch::Sender<Model>, watcher_msg: WatcherMsg)
                 Cmd::Msg(Msg::Providers(ProvidersMsg::Sync { provider_id, path }))
             }
         },
+        WatcherMsg::Error(report) => Cmd::Error(report),
     }
 }

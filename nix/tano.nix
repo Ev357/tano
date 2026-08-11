@@ -3,6 +3,7 @@
   stdenv,
   makeRustPlatform,
   inputs,
+  systems,
   ...
 }: let
   toolchain = inputs.fenix.packages.${stdenv.hostPlatform.system}.default.toolchain;
@@ -24,6 +25,7 @@ in
     meta = {
       description = "A terminal music player";
       homepage = "https://github.com/Ev357/tano";
+      platforms = systems;
       license = lib.licenses.mit;
       mainProgram = "tano";
     };

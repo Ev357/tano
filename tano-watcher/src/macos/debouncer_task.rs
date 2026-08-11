@@ -1,5 +1,6 @@
-use std::{collections::HashMap, io::Result, path::Path};
+use std::{collections::HashMap, path::Path};
 
+use color_eyre::eyre::Result;
 use tokio::{
     sync::mpsc::{UnboundedReceiver, UnboundedSender},
     task::{AbortHandle, JoinHandle, JoinSet},
@@ -106,10 +107,10 @@ pub fn debouncer_task(
 
                     let matched_ids = watch_map.get_matches(path);
 
-                    for id in matched_ids {
+                    for watch_id in matched_ids {
                         let event = WatchEvent {
                             path: path.clone(),
-                            watch_id: id,
+                            watch_id,
                         };
                         let _ = tx.send(Ok(event));
                     }

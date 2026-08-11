@@ -4,7 +4,7 @@ use color_eyre::eyre::Result;
 use sqlx::{SqlitePool, sqlite::SqliteConnectOptions};
 use tano_providers::local::parse_song::ParsedSong;
 use tano_shared::get_data_dir::get_data_dir;
-use tokio::sync::mpsc;
+use tokio::{fs, sync::mpsc};
 
 use crate::{actor::cmd::DatabaseCmd, db};
 
@@ -158,6 +158,7 @@ impl DatabaseActor {
 
     async fn load_database(&mut self) -> Result<()> {
         let data_dir = get_data_dir()?;
+        fs::create_dir_all(&data_dir).await?;
 
         let database_path = &data_dir.join("database.db").to_string_lossy().to_string();
 

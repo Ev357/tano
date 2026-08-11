@@ -107,21 +107,26 @@ impl<T: WatcherModel> WatcherActor<T> {
     }
 }
 
-pub async fn run_watcher_actor<T: WatcherModel>(mut actor: WatcherActor<T>) -> Result<()> {
+pub async fn run_watcher_actor<T: WatcherModel>(mut actor: WatcherActor<T>) {
     loop {
-        tokio::select! {
+        let result = tokio::select! {
             Some(cmd) = actor.receiver.recv() => {
                 actor.handle_command(cmd).await;
+
+                Ok(())
             }
             Ok(_) = actor.model_rx.changed() => {
-                actor.handle_update()?;
+                actor.handle_update()
             }
             Some(event) = actor.notify_rx.recv() => {
-                actor.handle_event(event).await?;
+                actor.handle_event(event).await
             },
-            else => break,
+            else => return,
+        };
+
+        if let Err(error) = result {
+            let _ = actor.msg_tx.send(WatcherMsg::Error(error)).await;
+            return;
         }
     }
-
-    Ok(())
 }

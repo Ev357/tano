@@ -28,6 +28,7 @@ pub mod debouncer_task;
 pub mod inotify_event;
 pub mod reader_task;
 
+#[derive(Debug)]
 pub struct INotifyWatcher {
     reader_handle: JoinHandle<()>,
     debouncer_handle: JoinHandle<()>,

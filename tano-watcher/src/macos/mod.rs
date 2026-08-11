@@ -1,9 +1,6 @@
-use std::{
-    collections::HashMap,
-    ffi::c_void,
-    io::{Error, ErrorKind, Result},
-};
+use std::{collections::HashMap, ffi::c_void, fs, path::Path};
 
+use color_eyre::eyre::{Result, eyre};
 use dispatch2::{DispatchQueue, DispatchRetained};
 use objc2_core_foundation::{CFArray, CFString};
 use objc2_core_services::{
@@ -32,6 +29,7 @@ pub mod fs_event;
 mod fsevent_callback;
 pub mod watch_map;
 
+#[derive(Debug)]
 pub struct FsEventWatcher {
     debouncer_handle: JoinHandle<()>,
     cmd_tx: UnboundedSender<DebouncerCommand>,
@@ -47,7 +45,7 @@ impl Watcher for FsEventWatcher {
 
         let tx_ptr = Box::into_raw(Box::new(cmd_tx.clone())) as *mut c_void;
 
-        let queue = DispatchQueue::new("tano_notify_watcher", None);
+        let queue = DispatchQueue::new("tano_watcher", None);
         let debouncer_handle = debouncer_task(cmd_rx, event_handler);
 
         Ok(Self {
@@ -60,11 +58,11 @@ impl Watcher for FsEventWatcher {
         })
     }
 
-    fn watch<T: AsRef<std::path::Path>>(&mut self, watch_id: WatchId, path: T) -> Result<()> {
-        let canonical_path = std::fs::canonicalize(path)?;
-        let path = canonical_path.to_str().ok_or_else(|| {
-            Error::new(ErrorKind::InvalidInput, "Invalid UTF-8 in canonical path")
-        })?;
+    fn watch<T: AsRef<Path>>(&mut self, watch_id: WatchId, path: T) -> Result<()> {
+        let canonical_path = fs::canonicalize(path)?;
+        let path = canonical_path
+            .to_str()
+            .ok_or_else(|| eyre!("Invalid UTF-8 in canonical path"))?;
 
         self.paths.insert(watch_id, path.to_string());
 
@@ -89,6 +87,9 @@ impl Watcher for FsEventWatcher {
         Ok(())
     }
 }
+
+unsafe impl Send for FsEventWatcher {}
+unsafe impl Sync for FsEventWatcher {}
 
 impl FsEventWatcher {
     fn recreate(&mut self) -> Result<()> {
@@ -132,9 +133,7 @@ impl FsEventWatcher {
         };
 
         if new_stream.is_null() {
-            return Err(Error::other(
-                "macOS FSEventStreamCreate returned a null pointer",
-            ));
+            return Err(eyre!("macOS FSEventStreamCreate returned a null pointer"));
         }
 
         unsafe {
@@ -147,8 +146,8 @@ impl FsEventWatcher {
                 FSEventStreamInvalidate(new_stream);
                 FSEventStreamRelease(new_stream);
             }
-            return Err(Error::other(
-                "macOS FSEventStreamStart failed to start the watcher",
+            return Err(eyre!(
+                "macOS FSEventStreamStart failed to start the watcher"
             ));
         }
 
