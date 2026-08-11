@@ -1,11 +1,8 @@
 use std::path::PathBuf;
 
-use crate::watch_type::WatchType;
+use crate::watch_id::WatchId;
 
 #[derive(Debug)]
 pub enum WatcherMsg {
-    FileChange {
-        path: PathBuf,
-        watch_type: WatchType,
-    },
+    WatchEvent { path: PathBuf, watch_id: WatchId },
 }

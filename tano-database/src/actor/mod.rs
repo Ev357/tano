@@ -1,14 +1,12 @@
 use std::str::FromStr;
 
 use color_eyre::eyre::Result;
-use sqlx::{QueryBuilder, Sqlite, SqlitePool, sqlite::SqliteConnectOptions};
+use sqlx::{SqlitePool, sqlite::SqliteConnectOptions};
+use tano_providers::local::parse_song::ParsedSong;
 use tano_shared::get_data_dir::get_data_dir;
 use tokio::sync::mpsc;
 
-use crate::{
-    actor::cmd::DatabaseCmd,
-    song::{CreateSong, Song},
-};
+use crate::{actor::cmd::DatabaseCmd, db};
 
 pub mod cmd;
 pub mod handle;
@@ -35,69 +33,127 @@ impl DatabaseActor {
             DatabaseCmd::GetSongs { respond_to } => {
                 let _ = respond_to.send(self.get_songs().await);
             }
-            DatabaseCmd::SyncSongs { songs, respond_to } => {
-                let _ = respond_to.send(self.sync_songs(&songs).await);
+            DatabaseCmd::GetSongIds { respond_to } => {
+                let _ = respond_to.send(self.get_song_ids().await);
+            }
+            DatabaseCmd::GetSyncLocalSong {
+                respond_to,
+                provider_id,
+            } => {
+                let _ = respond_to.send(self.get_sync_local_songs(provider_id).await);
+            }
+            DatabaseCmd::SyncLocalSongs {
+                provider_id,
+                new_songs,
+                updated_songs,
+                to_update_path,
+                to_delete_ids,
+                respond_to,
+            } => {
+                let _ = respond_to.send(
+                    self.sync_local_songs(
+                        provider_id,
+                        new_songs,
+                        updated_songs,
+                        to_update_path,
+                        to_delete_ids,
+                    )
+                    .await,
+                );
+            }
+            DatabaseCmd::GetLocalSongByPath {
+                provider_id,
+                path,
+                respond_to,
+            } => {
+                let _ = respond_to.send(
+                    db::get_local_song_by_path(self.pool.as_ref().unwrap(), provider_id, &path)
+                        .await,
+                );
+            }
+            DatabaseCmd::GetLocalSongByInode {
+                provider_id,
+                inode,
+                respond_to,
+            } => {
+                let _ = respond_to.send(
+                    db::get_local_song_by_inode(self.pool.as_ref().unwrap(), provider_id, inode)
+                        .await,
+                );
+            }
+            DatabaseCmd::UpdateLocalSongPath {
+                id,
+                path,
+                respond_to,
+            } => {
+                let _ = respond_to
+                    .send(db::update_local_song_path(self.pool.as_ref().unwrap(), id, &path).await);
+            }
+            DatabaseCmd::InsertLocalSong {
+                provider_id,
+                parsed_song,
+                respond_to,
+            } => {
+                let _ = respond_to.send(
+                    db::insert_parsed_song(self.pool.as_ref().unwrap(), provider_id, &parsed_song)
+                        .await,
+                );
+            }
+            DatabaseCmd::UpdateLocalSong {
+                provider_id,
+                id,
+                parsed_song,
+                respond_to,
+            } => {
+                let _ = respond_to.send(
+                    db::update_parsed_song(
+                        self.pool.as_ref().unwrap(),
+                        provider_id,
+                        id,
+                        &parsed_song,
+                    )
+                    .await,
+                );
+            }
+            DatabaseCmd::DeleteLocalSong { id, respond_to } => {
+                let _ =
+                    respond_to.send(db::delete_parsed_song(self.pool.as_ref().unwrap(), id).await);
             }
         }
     }
 
-    async fn get_songs(&self) -> Result<Vec<Song>> {
-        let songs = sqlx::query_as!(
-            Song,
-            "SELECT id, title, provider_id, path FROM songs ORDER BY title"
-        )
-        .fetch_all(self.pool.as_ref().unwrap())
-        .await?;
-
-        Ok(songs)
+    async fn get_songs(&self) -> Result<Vec<crate::song::Song>> {
+        db::get_songs(self.pool.as_ref().unwrap()).await
     }
 
-    async fn sync_songs(&self, create_songs: &[CreateSong]) -> Result<()> {
-        let mut tx = self.pool.as_ref().unwrap().begin().await?;
+    async fn get_song_ids(&self) -> Result<Vec<i64>> {
+        db::get_song_ids(self.pool.as_ref().unwrap()).await
+    }
 
-        sqlx::query("CREATE TEMPORARY TABLE batch_sync (title TEXT, provider_id TEXT, path TEXT)")
-            .execute(&mut *tx)
-            .await?;
+    async fn get_sync_local_songs(
+        &self,
+        provider_id: u64,
+    ) -> Result<Vec<crate::local_song::SyncLocalSong>> {
+        db::get_sync_local_songs(self.pool.as_ref().unwrap(), provider_id).await
+    }
 
-        if !create_songs.is_empty() {
-            let mut query_builder: QueryBuilder<Sqlite> =
-                QueryBuilder::new("INSERT INTO batch_sync (title, provider_id, path) ");
-
-            query_builder.push_values(create_songs, |mut batch, song| {
-                batch
-                    .push_bind(&song.title)
-                    .push_bind(&song.provider_id)
-                    .push_bind(&song.path);
-            });
-
-            query_builder.build().execute(&mut *tx).await?;
-        }
-
-        sqlx::query(
-            "
-            DELETE FROM songs
-            WHERE path NOT IN (SELECT path FROM batch_sync)
-            ",
+    async fn sync_local_songs(
+        &self,
+        provider_id: u64,
+        new_songs: Vec<ParsedSong>,
+        updated_songs: Vec<(i64, ParsedSong)>,
+        to_update_path: Vec<(i64, String)>,
+        to_delete_ids: Vec<i64>,
+    ) -> Result<()> {
+        db::sync_local_songs(
+            self.pool.as_ref().unwrap(),
+            provider_id,
+            new_songs,
+            updated_songs,
+            to_update_path,
+            to_delete_ids,
         )
-        .execute(&mut *tx)
-        .await?;
-
-        sqlx::query(
-            "
-            INSERT OR IGNORE INTO songs (title, provider_id, path)
-            SELECT title, provider_id, path FROM batch_sync
-            ",
-        )
-        .execute(&mut *tx)
-        .await?;
-
-        sqlx::query("DROP TABLE batch_sync")
-            .execute(&mut *tx)
-            .await?;
-
-        tx.commit().await?;
-
-        Ok(())
+        .await
     }
 
     async fn load_database(&mut self) -> Result<()> {

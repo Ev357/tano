@@ -1,5 +1,7 @@
-use tano_providers::ProviderType;
+use std::collections::HashSet;
+
+use crate::watch_entry::WatchEntry;
 
 pub trait WatcherModel: Send + Sync + 'static {
-    fn providers(&self) -> &[ProviderType];
+    fn entries(&self) -> HashSet<WatchEntry>;
 }

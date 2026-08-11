@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        UPDATE songs\n        SET title = ?, provider_id = ?, album_id = ?, track_number = ?, duration = ?, year = ?\n        WHERE id = ?\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 7
+    },
+    "nullable": []
+  },
+  "hash": "22436d7b3f11dd9896cbc968029b0a9f505c8057cd0a7c5e93400d7129c10530"
+}

@@ -13,7 +13,6 @@ use crate::{
         handles::Handles,
         providers::{msg::ProvidersMsg, update_providers},
         tui::update_tui,
-        utils::init_providers::init_providers,
         watcher::update_watcher,
     },
 };
@@ -24,7 +23,6 @@ mod database;
 pub mod handles;
 pub mod providers;
 mod tui;
-mod utils;
 mod watcher;
 
 pub fn update(model_tx: &watch::Sender<Model>, msg: Msg) -> Cmd {
@@ -62,10 +60,10 @@ pub fn update(model_tx: &watch::Sender<Model>, msg: Msg) -> Cmd {
         },
         Msg::InitProviders { config } => {
             model_tx.send_modify(|model| {
-                init_providers(model, config);
+                model.providers = config.into_iter().map(Into::into).collect();
             });
 
-            Cmd::Msg(Msg::Providers(ProvidersMsg::Sync))
+            Cmd::Msg(Msg::Providers(ProvidersMsg::FullSync))
         }
         Msg::Restore => Cmd::task(|handles| async move {
             let restore_result = handles.tui.restore().await;

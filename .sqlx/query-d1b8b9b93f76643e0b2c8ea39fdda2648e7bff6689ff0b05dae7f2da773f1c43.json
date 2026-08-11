@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        UPDATE local_songs\n        SET path = ?, inode = ?, mtime = ?, size = ?, format = ?\n        WHERE song_id = ?\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 6
+    },
+    "nullable": []
+  },
+  "hash": "d1b8b9b93f76643e0b2c8ea39fdda2648e7bff6689ff0b05dae7f2da773f1c43"
+}

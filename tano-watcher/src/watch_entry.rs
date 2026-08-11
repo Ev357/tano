@@ -1,11 +1,10 @@
 use std::path::PathBuf;
 
-use crate::{path_type::PathType, watch_mode::WatchMode, watch_type::WatchType};
+use crate::{path_type::PathType, watch_id::WatchId};
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct WatchEntry {
+    pub id: WatchId,
     pub path: PathBuf,
     pub path_type: PathType,
-    pub watch_type: WatchType,
-    pub watch_mode: WatchMode,
 }

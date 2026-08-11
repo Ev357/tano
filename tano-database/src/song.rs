@@ -1,16 +1,9 @@
-use sqlx::prelude::FromRow;
-
-#[derive(Debug, PartialEq, Clone, FromRow)]
-pub struct Song {
-    pub id: i64,
-    pub title: String,
-    pub provider_id: String,
-    pub path: String,
-}
-
-#[derive(Debug)]
-pub struct CreateSong {
-    pub title: String,
-    pub provider_id: String,
-    pub path: String,
-}
+define_entity!(CreateSong, Song {
+    id: i64,
+    provider_id: i64,
+    album_id: i64,
+    title: String,
+    track_number: Option<i64>,
+    duration: i64,
+    year: Option<i64>,
+});

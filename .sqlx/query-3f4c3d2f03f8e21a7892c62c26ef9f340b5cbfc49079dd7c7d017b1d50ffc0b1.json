@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        INSERT INTO albums (provider_id, title)\n        VALUES (?, ?)\n        ON CONFLICT (provider_id, title) DO UPDATE SET title = excluded.title\n        RETURNING id AS \"id!\"\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id!",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "3f4c3d2f03f8e21a7892c62c26ef9f340b5cbfc49079dd7c7d017b1d50ffc0b1"
+}

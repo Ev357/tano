@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        INSERT INTO songs (provider_id, album_id, title, track_number, duration, year)\n        VALUES (?, ?, ?, ?, ?, ?)\n        RETURNING id AS \"id!\"\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id!",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 6
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "a34e62a0c3f7e5ea09054db6e7a2db33c05ce7633eeb95563191fe99cf455d77"
+}

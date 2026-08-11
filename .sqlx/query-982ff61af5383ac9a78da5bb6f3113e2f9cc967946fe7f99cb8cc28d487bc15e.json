@@ -1,0 +1,50 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        SELECT local_songs.song_id, local_songs.path, local_songs.inode, local_songs.mtime, local_songs.size, local_songs.format\n        FROM local_songs\n        JOIN songs ON local_songs.song_id = songs.id\n        WHERE local_songs.path = ? AND songs.provider_id = ?\n        LIMIT 1",
+  "describe": {
+    "columns": [
+      {
+        "name": "song_id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "path",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "inode",
+        "ordinal": 2,
+        "type_info": "Integer"
+      },
+      {
+        "name": "mtime",
+        "ordinal": 3,
+        "type_info": "Integer"
+      },
+      {
+        "name": "size",
+        "ordinal": 4,
+        "type_info": "Integer"
+      },
+      {
+        "name": "format",
+        "ordinal": 5,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "982ff61af5383ac9a78da5bb6f3113e2f9cc967946fe7f99cb8cc28d487bc15e"
+}

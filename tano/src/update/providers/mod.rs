@@ -1,51 +1,59 @@
 use tano_database::actor::mgs::DatabaseMsg;
-use tano_providers::{ProviderType, local::LocalProvider};
+use tano_providers::ProviderType;
 use tokio::sync::watch;
 
 use crate::{
     cmd::Cmd,
     model::Model,
     msg::Msg,
-    update::providers::{get_all_songs::get_all_songs, msg::ProvidersMsg},
+    update::providers::{full_sync::full_sync, msg::ProvidersMsg, sync::sync},
 };
 
-mod get_all_songs;
+mod full_sync;
 pub mod msg;
+mod sync;
 
 pub fn update_providers(model_tx: &watch::Sender<Model>, providers_msg: ProvidersMsg) -> Cmd {
     match providers_msg {
-        ProvidersMsg::Sync => {
-            let model = model_tx.borrow();
-
-            let local_providers: Vec<LocalProvider> = model
+        ProvidersMsg::FullSync => {
+            let local_providers: Vec<_> = model_tx
+                .borrow()
                 .providers
                 .iter()
-                .filter_map(|provider| {
-                    #[allow(irrefutable_let_patterns)]
-                    if let ProviderType::Local(provider) = provider {
-                        return Some(provider.clone());
-                    }
+                .enumerate()
+                .map(|(index, provider)| {
+                    let path = match provider {
+                        ProviderType::Local(provider) => provider.config.path.clone(),
+                    };
 
-                    None
+                    (index as u64, path)
                 })
                 .collect();
 
-            Cmd::task(|handles| async move {
-                let songs = match get_all_songs(local_providers).await {
-                    Ok(songs) => songs,
-                    Err(report) => {
-                        return Msg::Database(DatabaseMsg::SongsLoaded { songs: Err(report) });
+            Cmd::task(move |handles| async move {
+                let mut overall_result = Ok(());
+
+                for (provider_id, path) in local_providers {
+                    if let Err(error) = full_sync(handles.clone(), provider_id, path).await {
+                        overall_result = Err(error);
+                        break;
                     }
-                };
-
-                if let Err(report) = handles.database.sync_songs(songs).await {
-                    return Msg::Database(DatabaseMsg::SongsLoaded { songs: Err(report) });
                 }
-
-                let songs = handles.database.get_songs().await;
-
-                Msg::Database(DatabaseMsg::SongsLoaded { songs })
+                Msg::Providers(ProvidersMsg::FullSyncDone {
+                    result: overall_result,
+                })
             })
         }
+        ProvidersMsg::FullSyncDone { result } | ProvidersMsg::SyncDone { result } => match result {
+            Ok(_) => Cmd::task(|handles| async move {
+                let songs = handles.database.get_songs().await;
+                Msg::Database(DatabaseMsg::SongsLoaded { songs })
+            }),
+            Err(error) => Cmd::Error(error),
+        },
+        ProvidersMsg::Sync { provider_id, path } => Cmd::task(move |handles| async move {
+            let result = sync(handles, provider_id, path).await;
+            Msg::Providers(ProvidersMsg::SyncDone { result })
+        }),
     }
 }

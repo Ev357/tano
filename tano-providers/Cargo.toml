@@ -5,8 +5,8 @@ edition = "2024"
 
 [dependencies]
 tano-config = { path = "../tano-config" }
-tano-database = { path = "../tano-database" }
 tano-macro = { path = "../tano-macro" }
 tokio = { version = "1.52.3", features = ["full"] }
 color-eyre = "0.6.5"
 tracing = "0.1.44"
+lofty = "0.24.0"

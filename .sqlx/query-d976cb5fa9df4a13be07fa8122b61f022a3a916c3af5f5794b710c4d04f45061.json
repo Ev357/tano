@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        INSERT INTO local_songs (song_id, path, inode, mtime, size, format)\n        VALUES (?, ?, ?, ?, ?, ?)\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 6
+    },
+    "nullable": []
+  },
+  "hash": "d976cb5fa9df4a13be07fa8122b61f022a3a916c3af5f5794b710c4d04f45061"
+}
