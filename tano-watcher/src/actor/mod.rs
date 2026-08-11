@@ -10,6 +10,7 @@ use crate::{
     RecommendedWatcher,
     actor::{cmd::WatcherCmd, msg::WatcherMsg},
     model::WatcherModel,
+    recommended_watcher,
     watch_entry::WatchEntry,
     watch_event::WatchEvent,
     watcher::Watcher,
@@ -35,7 +36,7 @@ impl<T: WatcherModel> WatcherActor<T> {
         msg_tx: mpsc::Sender<WatcherMsg>,
     ) -> Result<Self> {
         let (notify_tx, notify_rx) = mpsc::unbounded_channel();
-        let watcher = crate::recommended_watcher(notify_tx)?;
+        let watcher = recommended_watcher(notify_tx)?;
 
         Ok(Self {
             receiver,

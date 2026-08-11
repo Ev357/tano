@@ -8,7 +8,6 @@ tano-macro = { path = "../tano-macro" }
 tano-shared = { path = "../tano-shared" }
 tano-providers = { path = "../tano-providers" }
 color-eyre = "0.6.5"
-notify = "8.2.0"
 tokio = { version = "1.52.3", features = ["full"] }
 tracing = "0.1.44"
 bitflags = "2.13.1"
