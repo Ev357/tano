@@ -1,4 +1,4 @@
-use crossterm::event::{Event, KeyCode};
+use crossterm::event::{Event, KeyCode, KeyModifiers};
 use tano_backend::actor::msg::BackendMsg;
 use tano_tui::{actor::msg::TuiMsg, view::View};
 use tokio::sync::watch;
@@ -10,6 +10,9 @@ pub fn update_backend(model_tx: &watch::Sender<Model>, backend_msg: BackendMsg) 
         BackendMsg::Event(event) => match event {
             Ok(event) => match event {
                 Event::Key(key_event) => match key_event.code {
+                    KeyCode::Char('c') if key_event.modifiers.contains(KeyModifiers::CONTROL) => {
+                        Cmd::Msg(Msg::Restore)
+                    }
                     KeyCode::Char('q') => Cmd::Msg(Msg::Restore),
                     KeyCode::Char(char @ ('j' | 'k')) => {
                         model_tx.send_modify(|model| {
