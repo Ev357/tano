@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 
 use tano_backend::model::BackendModel;
+use tano_config::keybind::KeyBind;
 use tano_providers::ProviderType;
 use tano_shared::get_config_dir::get_config_dir;
 use tano_tui::{model::TuiModel, view::View};
@@ -11,10 +12,12 @@ use tano_watcher::{
 use crate::model::{
     config_state::{ConfigState, ConfigWatchState},
     database_state::DatabaseState,
+    key_trie::KeyTrie,
 };
 
 pub mod config_state;
 pub mod database_state;
+pub mod key_trie;
 
 #[derive(Default, Debug)]
 pub struct Model {
@@ -22,6 +25,8 @@ pub struct Model {
     pub database: DatabaseState,
     pub view: View,
     pub providers: Vec<ProviderType>,
+    pub keymap: KeyTrie,
+    pub keybind_buffer: Vec<KeyBind>,
 }
 
 impl TuiModel for Model {
