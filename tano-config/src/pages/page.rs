@@ -7,7 +7,7 @@ use serde::Deserialize;
 pub enum Page {
     Overview,
     Songs,
-    // Albums,
+    Albums,
     // Artists,
 }
 
@@ -16,7 +16,7 @@ impl Display for Page {
         let page_str = match self {
             Page::Overview => "Overview",
             Page::Songs => "Songs",
-            // Page::Albums => "Albums",
+            Page::Albums => "Albums",
             // Page::Artists => "Artists",
         };
         write!(f, "{}", page_str)

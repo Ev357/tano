@@ -4,6 +4,7 @@ use tokio::sync::{mpsc, oneshot};
 
 use crate::{
     actor::{DatabaseActor, cmd::DatabaseCmd, run_database_actor},
+    album::Album,
     local_song::{LocalSong, SyncLocalSong},
     song::Song,
 };
@@ -29,6 +30,14 @@ impl DatabaseActorHandle {
     pub async fn get_songs(&self) -> Result<Vec<Song>> {
         let (send, recv) = oneshot::channel();
         let cmd = DatabaseCmd::GetSongs { respond_to: send };
+
+        let _ = self.sender.send(cmd).await;
+        recv.await.expect(DATABASE_ACTOR_KILLED)
+    }
+
+    pub async fn get_albums(&self) -> Result<Vec<Album>> {
+        let (send, recv) = oneshot::channel();
+        let cmd = DatabaseCmd::GetAlbums { respond_to: send };
 
         let _ = self.sender.send(cmd).await;
         recv.await.expect(DATABASE_ACTOR_KILLED)

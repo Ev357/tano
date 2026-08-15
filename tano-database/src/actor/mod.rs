@@ -6,7 +6,7 @@ use tano_providers::local::parse_song::ParsedSong;
 use tano_shared::get_data_dir::get_data_dir;
 use tokio::{fs, sync::mpsc};
 
-use crate::{actor::cmd::DatabaseCmd, db};
+use crate::{actor::cmd::DatabaseCmd, album::Album, db, local_song::SyncLocalSong, song::Song};
 
 pub mod cmd;
 pub mod handle;
@@ -31,6 +31,9 @@ impl DatabaseActor {
             }
             DatabaseCmd::GetSongs { respond_to } => {
                 let _ = respond_to.send(self.get_songs().await);
+            }
+            DatabaseCmd::GetAlbums { respond_to } => {
+                let _ = respond_to.send(self.get_albums().await);
             }
             DatabaseCmd::GetSongIds { respond_to } => {
                 let _ = respond_to.send(self.get_song_ids().await);
@@ -121,18 +124,19 @@ impl DatabaseActor {
         }
     }
 
-    async fn get_songs(&self) -> Result<Vec<crate::song::Song>> {
+    async fn get_songs(&self) -> Result<Vec<Song>> {
         db::get_songs(self.pool.as_ref().unwrap()).await
+    }
+
+    async fn get_albums(&self) -> Result<Vec<Album>> {
+        db::get_albums(self.pool.as_ref().unwrap()).await
     }
 
     async fn get_song_ids(&self) -> Result<Vec<i64>> {
         db::get_song_ids(self.pool.as_ref().unwrap()).await
     }
 
-    async fn get_sync_local_songs(
-        &self,
-        provider_id: u64,
-    ) -> Result<Vec<crate::local_song::SyncLocalSong>> {
+    async fn get_sync_local_songs(&self, provider_id: u64) -> Result<Vec<SyncLocalSong>> {
         db::get_sync_local_songs(self.pool.as_ref().unwrap(), provider_id).await
     }
 

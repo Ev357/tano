@@ -1,6 +1,6 @@
 use tano_config::pages::page::Page;
 use tano_tui::{
-    components::{overview::OverviewProps, songs::SongsProps},
+    components::{albums::AlbumsProps, overview::OverviewProps, songs::SongsProps},
     utils::{list_state::ListState, load_state::LoadState},
     view::View,
 };
@@ -39,6 +39,18 @@ pub fn update_navigate(model_tx: &watch::Sender<Model>, page: Page) -> Cmd {
             Cmd::task(|handles| async move {
                 let songs = handles.database.get_songs().await;
                 Msg::Database(DatabaseMsg::SongsLoaded { songs })
+            })
+        }
+        Page::Albums => {
+            model_tx.send_modify(|model| {
+                model.view = View::Albums(AlbumsProps {
+                    albums: LoadState::NotLoaded,
+                });
+            });
+
+            Cmd::task(|handles| async move {
+                let albums = handles.database.get_albums().await;
+                Msg::Database(DatabaseMsg::AlbumsLoaded { albums })
             })
         }
     };

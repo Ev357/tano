@@ -3,6 +3,7 @@ use tano_providers::local::parse_song::ParsedSong;
 use tokio::sync::oneshot;
 
 use crate::{
+    album::Album,
     local_song::{LocalSong, SyncLocalSong},
     song::Song,
 };
@@ -13,6 +14,9 @@ pub enum DatabaseCmd {
     },
     GetSongs {
         respond_to: oneshot::Sender<Result<Vec<Song>>>,
+    },
+    GetAlbums {
+        respond_to: oneshot::Sender<Result<Vec<Album>>>,
     },
     GetSongIds {
         respond_to: oneshot::Sender<Result<Vec<i64>>>,
