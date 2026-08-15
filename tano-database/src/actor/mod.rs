@@ -6,7 +6,10 @@ use tano_providers::local::parse_song::ParsedSong;
 use tano_shared::get_data_dir::get_data_dir;
 use tokio::{fs, sync::mpsc};
 
-use crate::{actor::cmd::DatabaseCmd, album::Album, db, local_song::SyncLocalSong, song::Song};
+use crate::{
+    actor::cmd::DatabaseCmd, album::Album, artist::Artist, db, local_song::SyncLocalSong,
+    song::Song,
+};
 
 pub mod cmd;
 pub mod handle;
@@ -34,6 +37,9 @@ impl DatabaseActor {
             }
             DatabaseCmd::GetAlbums { respond_to } => {
                 let _ = respond_to.send(self.get_albums().await);
+            }
+            DatabaseCmd::GetArtists { respond_to } => {
+                let _ = respond_to.send(self.get_artists().await);
             }
             DatabaseCmd::GetSongIds { respond_to } => {
                 let _ = respond_to.send(self.get_song_ids().await);
@@ -130,6 +136,10 @@ impl DatabaseActor {
 
     async fn get_albums(&self) -> Result<Vec<Album>> {
         db::get_albums(self.pool.as_ref().unwrap()).await
+    }
+
+    async fn get_artists(&self) -> Result<Vec<Artist>> {
+        db::get_artists(self.pool.as_ref().unwrap()).await
     }
 
     async fn get_song_ids(&self) -> Result<Vec<i64>> {

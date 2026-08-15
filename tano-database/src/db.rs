@@ -6,7 +6,7 @@ use tano_providers::local::parse_song::ParsedSong;
 
 use crate::{
     album::{Album, CreateAlbum},
-    artist::{ArtistRole, CreateArtist},
+    artist::{Artist, ArtistRole, CreateArtist},
     builders::*,
     bulk_builder::BulkBuilder,
     local_song::{CreateLocalSong, LocalSong, SyncLocalSong},
@@ -41,6 +41,21 @@ pub async fn get_albums(executor: impl Executor<'_, Database = Sqlite>) -> Resul
     .await?;
 
     Ok(albums)
+}
+
+pub async fn get_artists(executor: impl Executor<'_, Database = Sqlite>) -> Result<Vec<Artist>> {
+    let artists = sqlx::query_as!(
+        Artist,
+        r#"
+        SELECT id, provider_id, name
+        FROM artists
+        ORDER BY name
+        "#
+    )
+    .fetch_all(executor)
+    .await?;
+
+    Ok(artists)
 }
 
 pub async fn get_song_ids(executor: impl Executor<'_, Database = Sqlite>) -> Result<Vec<i64>> {

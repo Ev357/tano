@@ -13,6 +13,6 @@ keymap = [
   { on = "<Right>", run = "right" },
 ]
 
-page.overview.sections = ["songs"]
+page.overview.sections = ["songs", "albums", "artists"]
 
 startup_page = "overview"

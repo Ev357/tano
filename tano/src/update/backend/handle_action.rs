@@ -9,7 +9,7 @@ pub fn handle_action(model_tx: &Sender<Model>, action: &Action) -> Cmd {
         Action::Quit => Cmd::Msg(Msg::Restore),
         action @ (Action::Up | Action::Down | Action::Left | Action::Right) => {
             match &model_tx.borrow().view {
-                View::Songs(_) | View::Albums(_) => {
+                View::Songs(_) | View::Albums(_) | View::Artists(_) => {
                     if let Action::Left = action {
                         return Cmd::Msg(Msg::Navigate(Page::Overview));
                     }
@@ -54,6 +54,24 @@ pub fn handle_action(model_tx: &Sender<Model>, action: &Action) -> Cmd {
                         }
                         Action::Down => {
                             albums.next();
+                            true
+                        }
+                        _ => false,
+                    }
+                }
+                View::Artists(props) => {
+                    let artists = match &mut props.artists {
+                        LoadState::Loaded(artists) => artists,
+                        _ => return false,
+                    };
+
+                    match action {
+                        Action::Up => {
+                            artists.previous();
+                            true
+                        }
+                        Action::Down => {
+                            artists.next();
                             true
                         }
                         _ => false,

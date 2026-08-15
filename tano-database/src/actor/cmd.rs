@@ -4,6 +4,7 @@ use tokio::sync::oneshot;
 
 use crate::{
     album::Album,
+    artist::Artist,
     local_song::{LocalSong, SyncLocalSong},
     song::Song,
 };
@@ -17,6 +18,9 @@ pub enum DatabaseCmd {
     },
     GetAlbums {
         respond_to: oneshot::Sender<Result<Vec<Album>>>,
+    },
+    GetArtists {
+        respond_to: oneshot::Sender<Result<Vec<Artist>>>,
     },
     GetSongIds {
         respond_to: oneshot::Sender<Result<Vec<i64>>>,

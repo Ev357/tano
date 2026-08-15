@@ -1,4 +1,6 @@
-use crate::components::{albums::AlbumsProps, overview::OverviewProps, songs::SongsProps};
+use crate::components::{
+    albums::AlbumsProps, artists::ArtistsProps, overview::OverviewProps, songs::SongsProps,
+};
 
 #[derive(Debug, Default, Clone)]
 pub enum View {
@@ -6,5 +8,6 @@ pub enum View {
     Loading,
     Songs(SongsProps),
     Albums(AlbumsProps),
+    Artists(ArtistsProps),
     Overview(OverviewProps),
 }

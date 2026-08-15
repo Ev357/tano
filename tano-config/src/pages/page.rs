@@ -8,7 +8,7 @@ pub enum Page {
     Overview,
     Songs,
     Albums,
-    // Artists,
+    Artists,
 }
 
 impl Display for Page {
@@ -17,7 +17,7 @@ impl Display for Page {
             Page::Overview => "Overview",
             Page::Songs => "Songs",
             Page::Albums => "Albums",
-            // Page::Artists => "Artists",
+            Page::Artists => "Artists",
         };
         write!(f, "{}", page_str)
     }
