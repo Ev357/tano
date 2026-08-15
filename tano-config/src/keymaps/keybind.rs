@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use serde::{Deserialize, Deserializer, de};
 
-use crate::{key_modifiers::KeyModifiers, keycode::KeyCode};
+use crate::keymaps::{key_modifiers::KeyModifiers, keycode::KeyCode};
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct KeyBind {

@@ -6,7 +6,6 @@ use crate::{actor::cmd::ConfigCmd, config::Config};
 
 pub mod cmd;
 pub mod handle;
-pub mod msg;
 
 pub struct ConfigActor {
     receiver: mpsc::Receiver<ConfigCmd>,

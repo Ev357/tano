@@ -4,6 +4,8 @@ use serde::Deserialize;
 #[serde(rename_all = "lowercase")]
 pub enum Action {
     Quit,
-    Previous,
-    Next,
+    Up,
+    Down,
+    Left,
+    Right,
 }

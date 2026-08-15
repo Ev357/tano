@@ -1,7 +1,7 @@
 use ratatui::Frame;
 
 use crate::{
-    components::{loading::LoadingComponent, songs::SongsComponent},
+    components::{loading::LoadingComponent, overview::OverviewComponent, songs::SongsComponent},
     view::View,
 };
 
@@ -12,6 +12,7 @@ impl RootComponent {
         match props {
             View::Loading => LoadingComponent::render(frame),
             View::Songs(songs) => SongsComponent::render(frame, songs),
+            View::Overview(pages) => OverviewComponent::render(frame, pages),
         }
     }
 }

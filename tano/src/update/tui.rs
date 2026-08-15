@@ -1,5 +1,10 @@
-use tano_tui::actor::msg::TuiMsg;
+use color_eyre::eyre::Result;
 use tokio::sync::watch;
+
+#[derive(Debug)]
+pub enum TuiMsg {
+    RenderDone(Result<()>),
+}
 
 use crate::{cmd::Cmd, model::Model};
 

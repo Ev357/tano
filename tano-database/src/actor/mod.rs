@@ -10,7 +10,6 @@ use crate::{actor::cmd::DatabaseCmd, db};
 
 pub mod cmd;
 pub mod handle;
-pub mod mgs;
 
 pub struct DatabaseActor {
     receiver: mpsc::Receiver<DatabaseCmd>,

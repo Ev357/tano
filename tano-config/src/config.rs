@@ -2,15 +2,21 @@ use std::sync::LazyLock;
 
 use serde::Deserialize;
 
-use crate::{keymap::Keymap, providers::ProviderConfig};
+use crate::{
+    keymaps::keymap::Keymap,
+    pages::{Pages, page::Page},
+    providers::ProviderConfig,
+};
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
     #[serde(rename = "provider")]
     pub providers: Vec<ProviderConfig>,
-
     #[serde(rename = "keymap")]
     pub keymaps: Option<Vec<Keymap>>,
+    #[serde(rename = "page")]
+    pub pages: Pages,
+    pub startup_page: Page,
 }
 
 static DEFAULT_CONFIG: LazyLock<Config> = LazyLock::new(|| {

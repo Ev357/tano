@@ -1,12 +1,15 @@
-use tano_database::actor::mgs::DatabaseMsg;
 use tano_providers::ProviderType;
+use tano_tui::view::View;
 use tokio::sync::watch;
 
 use crate::{
     cmd::Cmd,
     model::Model,
     msg::Msg,
-    update::providers::{full_sync::full_sync, msg::ProvidersMsg, sync::sync},
+    update::{
+        database::DatabaseMsg,
+        providers::{full_sync::full_sync, msg::ProvidersMsg, sync::sync},
+    },
 };
 
 mod full_sync;
@@ -44,13 +47,19 @@ pub fn update_providers(model_tx: &watch::Sender<Model>, providers_msg: Provider
                 })
             })
         }
-        ProvidersMsg::FullSyncDone { result } | ProvidersMsg::SyncDone { result } => match result {
-            Ok(_) => Cmd::task(|handles| async move {
-                let songs = handles.database.get_songs().await;
-                Msg::Database(DatabaseMsg::SongsLoaded { songs })
-            }),
-            Err(error) => Cmd::Error(error),
-        },
+        ProvidersMsg::FullSyncDone { result } | ProvidersMsg::SyncDone { result } => {
+            if let Err(error) = result {
+                return Cmd::Error(error);
+            }
+
+            match model_tx.borrow().view {
+                View::Songs(_) => Cmd::task(|handles| async move {
+                    let songs = handles.database.get_songs().await;
+                    Msg::Database(DatabaseMsg::SongsLoaded { songs })
+                }),
+                _ => Cmd::None,
+            }
+        }
         ProvidersMsg::Sync { provider_id, path } => Cmd::task(move |handles| async move {
             let result = sync(handles, provider_id, path).await;
             Msg::Providers(ProvidersMsg::SyncDone { result })

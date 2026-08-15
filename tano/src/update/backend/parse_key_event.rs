@@ -1,5 +1,5 @@
 use crossterm::event::{KeyCode as CrossKeyCode, KeyEvent, KeyModifiers as CrossModifiers};
-use tano_config::{key_modifiers::KeyModifiers, keybind::KeyBind, keycode::KeyCode};
+use tano_config::keymaps::{key_modifiers::KeyModifiers, keybind::KeyBind, keycode::KeyCode};
 
 pub fn parse_key_event(event: &KeyEvent) -> Option<KeyBind> {
     let mut modifiers = KeyModifiers::empty();

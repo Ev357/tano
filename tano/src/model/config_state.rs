@@ -1,3 +1,4 @@
+use tano_config::pages::Pages;
 use tano_shared::get_config_dir::get_config_dir;
 
 #[derive(Debug)]
@@ -37,5 +38,8 @@ impl ConfigWatchState {
 pub enum ConfigState {
     #[default]
     Loading,
-    Loaded(ConfigWatchState),
+    Loaded {
+        pages: Pages,
+        watch_state: ConfigWatchState,
+    },
 }

@@ -1,16 +1,16 @@
 use color_eyre::eyre::Result;
 use tano_backend::actor::msg::BackendMsg;
-use tano_config::{actor::msg::ConfigMsg, config::Config, providers::ProviderConfig};
-use tano_database::actor::mgs::DatabaseMsg;
-use tano_tui::actor::msg::TuiMsg;
+use tano_config::{config::Config, pages::page::Page, providers::ProviderConfig};
 use tano_watcher::actor::msg::WatcherMsg;
 
-use crate::update::providers::msg::ProvidersMsg;
+use crate::update::{
+    config::ConfigMsg, database::DatabaseMsg, providers::msg::ProvidersMsg, tui::TuiMsg,
+};
 
 #[derive(Debug)]
 pub enum Msg {
     Init,
-    InitDone { result: Result<Config> },
+    CoreDataLoaded { result: Result<Config> },
     InitProviders { config: Vec<ProviderConfig> },
     Restore,
     Close { restore_result: Result<()> },
@@ -20,4 +20,7 @@ pub enum Msg {
     Watcher(WatcherMsg),
     Config(ConfigMsg),
     Providers(ProvidersMsg),
+    InitInitialView { startup_page: Page },
+    Navigate(Page),
+    RefreshView,
 }

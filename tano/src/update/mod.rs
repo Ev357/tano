@@ -1,5 +1,4 @@
-use tano_config::actor::msg::ConfigMsg;
-use tano_database::actor::mgs::DatabaseMsg;
+use tano_tui::view::View;
 use tokio::sync::watch;
 
 use crate::{
@@ -8,53 +7,50 @@ use crate::{
     msg::Msg,
     update::{
         backend::update_backend,
-        config::update_config,
+        config::{ConfigMsg, update_config},
         database::update_database,
-        handles::Handles,
+        navigate::update_navigate,
         providers::{msg::ProvidersMsg, update_providers},
-        tui::update_tui,
+        refresh_view::update_refresh_view,
+        tui::{TuiMsg, update_tui},
         watcher::update_watcher,
     },
 };
 
-mod backend;
-mod config;
-mod database;
+pub mod backend;
+pub mod config;
+pub mod database;
 pub mod handles;
+pub mod navigate;
 pub mod providers;
-mod tui;
-mod watcher;
+pub mod refresh_view;
+pub mod tui;
+pub mod watcher;
 
 pub fn update(model_tx: &watch::Sender<Model>, msg: Msg) -> Cmd {
     match msg {
-        Msg::Init => Cmd::task(
-            |Handles {
-                 config,
-                 database,
-                 tui,
-                 ..
-             }| async move {
-                let result =
-                    tokio::try_join!(config.load_config(), database.load_database(), tui.render())
-                        .map(|(config, _, _)| config);
+        Msg::Init => Cmd::Batch(vec![
+            Cmd::task(|handles| async move {
+                let result = tokio::try_join!(
+                    handles.config.load_config(),
+                    handles.database.load_database()
+                )
+                .map(|(config, _)| config);
 
-                Msg::InitDone { result }
-            },
-        ),
-        Msg::InitDone { result } => match result {
+                Msg::CoreDataLoaded { result }
+            }),
+            Cmd::task(|handles| async move {
+                let result = handles.tui.render().await;
+                Msg::Tui(TuiMsg::RenderDone(result))
+            }),
+        ]),
+        Msg::CoreDataLoaded { result } => match result {
             Ok(_) => {
                 model_tx.send_modify(|model| {
                     model.database = DatabaseState::Loaded;
                 });
 
-                Cmd::Batch(vec![
-                    Cmd::task(|handles| async move {
-                        let songs = handles.database.get_songs().await;
-
-                        Msg::Database(DatabaseMsg::SongsLoaded { songs })
-                    }),
-                    Cmd::Msg(Msg::Config(ConfigMsg::ConfigLoaded(result))),
-                ])
+                Cmd::Msg(Msg::Config(ConfigMsg::ConfigLoaded(result)))
             }
             Err(report) => Cmd::Error(report),
         },
@@ -80,5 +76,14 @@ pub fn update(model_tx: &watch::Sender<Model>, msg: Msg) -> Cmd {
         Msg::Tui(tui_msg) => update_tui(model_tx, tui_msg),
         Msg::Config(config_msg) => update_config(model_tx, config_msg),
         Msg::Providers(providers_msg) => update_providers(model_tx, providers_msg),
+        Msg::InitInitialView { startup_page } => {
+            if !matches!(model_tx.borrow().view, View::Loading) {
+                return Cmd::None;
+            }
+
+            Cmd::Msg(Msg::Navigate(startup_page))
+        }
+        Msg::Navigate(page) => update_navigate(model_tx, page),
+        Msg::RefreshView => update_refresh_view(model_tx),
     }
 }

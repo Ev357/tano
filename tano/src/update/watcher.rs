@@ -1,4 +1,3 @@
-use tano_config::actor::msg::ConfigMsg;
 use tano_shared::{get_config_dir::get_config_dir, get_config_file::get_config_file};
 use tano_watcher::{actor::msg::WatcherMsg, watch_id::WatchId};
 use tokio::sync::watch;
@@ -10,7 +9,7 @@ use crate::{
         config_state::{ConfigState, ConfigWatchState},
     },
     msg::Msg,
-    update::providers::msg::ProvidersMsg,
+    update::{config::ConfigMsg, providers::msg::ProvidersMsg},
 };
 
 pub fn update_watcher(model_tx: &watch::Sender<Model>, watcher_msg: WatcherMsg) -> Cmd {
@@ -20,7 +19,7 @@ pub fn update_watcher(model_tx: &watch::Sender<Model>, watcher_msg: WatcherMsg) 
                 let should_reload = {
                     let model = model_tx.borrow();
 
-                    if let ConfigState::Loaded(watch_state) = &model.config {
+                    if let ConfigState::Loaded { watch_state, .. } = &model.config {
                         if let Ok(config_dir) = get_config_dir() {
                             let config_file = get_config_file(&config_dir);
                             match watch_state {

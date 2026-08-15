@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use tano_config::{action::Action, keybind::KeyBind};
+use tano_config::keymaps::{action::Action, keybind::KeyBind};
 
 #[derive(Debug, Clone, Default)]
 pub struct KeyTrie {

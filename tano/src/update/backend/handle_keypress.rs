@@ -1,4 +1,4 @@
-use tano_config::{action::Action, keybind::KeyBind};
+use tano_config::keymaps::{action::Action, keybind::KeyBind};
 
 use crate::model::Model;
 

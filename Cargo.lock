@@ -2480,6 +2480,7 @@ dependencies = [
  "color-eyre",
  "crossterm",
  "ratatui",
+ "tano-config",
  "tano-database",
  "tano-macro",
  "tokio",

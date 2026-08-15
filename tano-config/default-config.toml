@@ -1,10 +1,14 @@
+provider = [{ type = "local", path = "~/Music/" }]
+
 keymap = [
   { on = "q", run = "quit" },
   { on = "<C-c>", run = "quit" },
-  { on = "j", run = "next" },
-  { on = "k", run = "previous" },
+  { on = "h", run = "left" },
+  { on = "j", run = "down" },
+  { on = "k", run = "up" },
+  { on = "l", run = "right" },
 ]
 
-[[provider]]
-type = "local"
-path = "~/Music/"
+page.overview.sections = ["songs"]
+
+startup_page = "overview"

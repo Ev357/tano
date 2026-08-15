@@ -1,20 +1,25 @@
 use crossterm::event::Event;
 use tano_backend::actor::msg::BackendMsg;
-use tano_config::action::Action;
-use tano_tui::{actor::msg::TuiMsg, view::View};
-use tokio::sync::watch;
+use tokio::sync::watch::Sender;
 
 use crate::{
     cmd::Cmd,
     model::Model,
     msg::Msg,
-    update::backend::{handle_keypress::handle_keypress, parse_key_event::parse_key_event},
+    update::{
+        backend::{
+            handle_action::handle_action, handle_keypress::handle_keypress,
+            parse_key_event::parse_key_event,
+        },
+        tui::TuiMsg,
+    },
 };
 
+mod handle_action;
 mod handle_keypress;
 pub mod parse_key_event;
 
-pub fn update_backend(model_tx: &watch::Sender<Model>, backend_msg: BackendMsg) -> Cmd {
+pub fn update_backend(model_tx: &Sender<Model>, backend_msg: BackendMsg) -> Cmd {
     match backend_msg {
         BackendMsg::Event(event) => match event {
             Ok(event) => match event {
@@ -29,29 +34,12 @@ pub fn update_backend(model_tx: &watch::Sender<Model>, backend_msg: BackendMsg) 
                         triggered_action = handle_keypress(model, keybind);
                     });
 
-                    match triggered_action {
-                        Some(Action::Quit) => Cmd::Msg(Msg::Restore),
-                        Some(action @ (Action::Next | Action::Previous)) => {
-                            model_tx.send_modify(|model| {
-                                let songs_props = match &mut model.view {
-                                    View::Songs(songs_props) => songs_props,
-                                    _ => return,
-                                };
+                    let action = match triggered_action {
+                        Some(action) => action,
+                        None => return Cmd::None,
+                    };
 
-                                match action {
-                                    Action::Next => songs_props.songs.next(),
-                                    Action::Previous => songs_props.songs.previous(),
-                                    _ => unreachable!(),
-                                }
-                            });
-
-                            Cmd::task(|handles| async move {
-                                let result = handles.tui.render().await;
-                                Msg::Tui(TuiMsg::RenderDone(result))
-                            })
-                        }
-                        None => Cmd::None,
-                    }
+                    handle_action(model_tx, &action)
                 }
                 Event::Resize(_, _) => Cmd::task(|handles| async move {
                     let result = handles.tui.render().await;

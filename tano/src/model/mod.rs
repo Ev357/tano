@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use tano_backend::model::BackendModel;
-use tano_config::keybind::KeyBind;
+use tano_config::keymaps::keybind::KeyBind;
 use tano_providers::ProviderType;
 use tano_shared::get_config_dir::get_config_dir;
 use tano_tui::{model::TuiModel, view::View};
@@ -41,7 +41,7 @@ impl WatcherModel for Model {
     fn entries(&self) -> HashSet<WatchEntry> {
         let mut entries = HashSet::new();
 
-        if let ConfigState::Loaded(watch_state) = &self.config
+        if let ConfigState::Loaded { watch_state, .. } = &self.config
             && let Ok(config_dir) = get_config_dir()
         {
             let (path, filter) = match watch_state {

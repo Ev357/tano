@@ -1,28 +1,45 @@
 use ratatui::{
     Frame,
+    layout::Alignment,
     style::{Color, Style},
-    widgets::{Block, BorderType, List, ListItem},
+    widgets::{Block, BorderType, List, ListItem, Paragraph},
 };
 use tano_database::song::Song;
 
-use crate::utils::list_state::ListState;
+use crate::utils::{list_state::ListState, load_state::LoadState};
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Clone)]
 pub struct SongsProps {
-    pub songs: ListState<Song>,
+    pub songs: LoadState<ListState<Song>>,
 }
 
 pub struct SongsComponent {}
 
 impl SongsComponent {
     pub fn render(frame: &mut Frame, props: &SongsProps) {
-        let items: Vec<ListItem> = props
-            .songs
+        let block = Block::bordered()
+            .title("Songs")
+            .border_type(BorderType::Rounded);
+
+        let songs = match &props.songs {
+            LoadState::Loaded(songs) => songs,
+            LoadState::NotLoaded => {
+                let loading_widget = Paragraph::new("Loading...")
+                    .alignment(Alignment::Center)
+                    .block(block)
+                    .style(Style::default().fg(Color::DarkGray));
+
+                frame.render_widget(loading_widget, frame.area());
+                return;
+            }
+        };
+
+        let items: Vec<ListItem> = songs
             .items
             .iter()
             .enumerate()
             .map(|(index, song)| {
-                let title = if props.songs.selected_index == Some(index) {
+                let title = if songs.selected_index == Some(index) {
                     format!("> {}", song.title)
                 } else {
                     format!("  {}", song.title)
@@ -33,11 +50,7 @@ impl SongsComponent {
             .collect();
 
         let list = List::new(items)
-            .block(
-                Block::bordered()
-                    .title("Songs")
-                    .border_type(BorderType::Rounded),
-            )
+            .block(block)
             .style(Style::default().fg(Color::White));
 
         frame.render_widget(list, frame.area());

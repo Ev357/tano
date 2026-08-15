@@ -1,5 +1,11 @@
-use tano_config::actor::msg::ConfigMsg;
+use color_eyre::eyre::Result;
+use tano_config::config::Config;
 use tokio::sync::watch;
+
+#[derive(Debug)]
+pub enum ConfigMsg {
+    ConfigLoaded(Result<Config>),
+}
 
 use crate::{
     cmd::Cmd,
@@ -26,14 +32,23 @@ pub fn update_config(model_tx: &watch::Sender<Model>, config_msg: ConfigMsg) -> 
                 }
 
                 model_tx.send_modify(|model| {
-                    model.config = ConfigState::Loaded(watch_state);
+                    model.config = ConfigState::Loaded {
+                        pages: config.pages.clone(),
+                        watch_state,
+                    };
                     model.keymap = keymap_trie;
                     model.keybind_buffer.clear();
                 });
 
-                Cmd::Msg(Msg::InitProviders {
-                    config: config.providers,
-                })
+                Cmd::Batch(vec![
+                    Cmd::Msg(Msg::InitProviders {
+                        config: config.providers,
+                    }),
+                    Cmd::Msg(Msg::InitInitialView {
+                        startup_page: config.startup_page,
+                    }),
+                    Cmd::Msg(Msg::RefreshView),
+                ])
             }
             Err(report) => Cmd::Error(report),
         },

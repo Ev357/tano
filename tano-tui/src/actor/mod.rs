@@ -16,7 +16,6 @@ use crate::{
 
 pub mod cmd;
 pub mod handle;
-pub mod msg;
 
 pub struct TuiActor<T: TuiModel> {
     receiver: mpsc::Receiver<TuiCmd>,

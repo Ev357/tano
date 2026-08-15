@@ -1,4 +1,4 @@
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Clone)]
 pub struct ListState<T> {
     pub selected_index: Option<usize>,
     pub items: Vec<T>,
@@ -52,5 +52,9 @@ impl<T> ListState<T> {
         } else {
             self.selected_index = Some(selected_index - 1);
         }
+    }
+
+    pub fn selected(&self) -> Option<&T> {
+        Some(&self.items[self.selected_index?])
     }
 }
