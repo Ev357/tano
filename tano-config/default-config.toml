@@ -11,6 +11,22 @@ keymap = [
   { on = "<Up>", run = "up" },
   { on = "l", run = "right" },
   { on = "<Right>", run = "right" },
+  { on = [
+    "g",
+    "o",
+  ], run = { goto = "overview" } },
+  { on = [
+    "g",
+    "s",
+  ], run = { goto = "songs" } },
+  { on = [
+    "g",
+    "a",
+  ], run = { goto = "albums" } },
+  { on = [
+    "g",
+    "r",
+  ], run = { goto = "artists" } },
 ]
 
 page.overview.sections = ["songs", "albums", "artists"]

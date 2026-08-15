@@ -13,6 +13,7 @@ use crate::{cmd::Cmd, model::Model, msg::Msg, update::tui::TuiMsg};
 pub fn handle_action(model_tx: &Sender<Model>, action: &Action) -> Cmd {
     match action {
         Action::Quit => Cmd::Msg(Msg::Restore),
+        Action::GoTo { goto } => Cmd::Msg(Msg::Navigate(*goto)),
         Action::Move(direction) => {
             match &model_tx.borrow().view {
                 View::Songs(_) | View::Albums(_) | View::Artists(_) => {
@@ -24,7 +25,7 @@ pub fn handle_action(model_tx: &Sender<Model>, action: &Action) -> Cmd {
                     if let (Direction::Right, Some(section)) =
                         (direction, props.sections.selected())
                     {
-                        return Cmd::Msg(Msg::Navigate(section.clone()));
+                        return Cmd::Msg(Msg::Navigate(*section));
                     }
                 }
                 _ => {}
