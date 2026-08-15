@@ -1,7 +1,7 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use tano_backend::model::BackendModel;
-use tano_config::keymaps::keybind::KeyBind;
+use tano_config::{keymaps::keybind::KeyBind, pages::page::Page};
 use tano_providers::ProviderType;
 use tano_shared::get_config_dir::get_config_dir;
 use tano_tui::{model::TuiModel, view::View};
@@ -27,6 +27,7 @@ pub struct Model {
     pub providers: Vec<ProviderType>,
     pub keymap: KeyTrie,
     pub keybind_buffer: Vec<KeyBind>,
+    pub last_cursor: HashMap<Page, usize>,
 }
 
 impl TuiModel for Model {

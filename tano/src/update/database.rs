@@ -1,4 +1,5 @@
 use color_eyre::eyre::Result;
+use tano_config::pages::page::Page;
 use tano_database::{album::Album, artist::Artist, song::Song};
 use tano_tui::{
     components::{albums::AlbumsProps, artists::ArtistsProps, songs::SongsProps},
@@ -21,9 +22,9 @@ pub fn update_database(model_tx: &Sender<Model>, database_msg: DatabaseMsg) -> C
     match database_msg {
         DatabaseMsg::SongsLoaded { songs } => match songs {
             Ok(songs) => {
-                let songs = ListState::new(songs, 0);
-
                 model_tx.send_modify(|model| {
+                    let cursor = model.last_cursor.get(&Page::Songs).copied().unwrap_or(0);
+                    let songs = ListState::new(songs, cursor);
                     model.view = View::Songs(SongsProps {
                         songs: LoadState::Loaded(songs),
                     })
@@ -35,9 +36,9 @@ pub fn update_database(model_tx: &Sender<Model>, database_msg: DatabaseMsg) -> C
         },
         DatabaseMsg::AlbumsLoaded { albums } => match albums {
             Ok(albums) => {
-                let albums = ListState::new(albums, 0);
-
                 model_tx.send_modify(|model| {
+                    let cursor = model.last_cursor.get(&Page::Albums).copied().unwrap_or(0);
+                    let albums = ListState::new(albums, cursor);
                     model.view = View::Albums(AlbumsProps {
                         albums: LoadState::Loaded(albums),
                     })
@@ -49,9 +50,9 @@ pub fn update_database(model_tx: &Sender<Model>, database_msg: DatabaseMsg) -> C
         },
         DatabaseMsg::ArtistsLoaded { artists } => match artists {
             Ok(artists) => {
-                let artists = ListState::new(artists, 0);
-
                 model_tx.send_modify(|model| {
+                    let cursor = model.last_cursor.get(&Page::Artists).copied().unwrap_or(0);
+                    let artists = ListState::new(artists, cursor);
                     model.view = View::Artists(ArtistsProps {
                         artists: LoadState::Loaded(artists),
                     })

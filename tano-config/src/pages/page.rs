@@ -2,7 +2,7 @@ use std::fmt::{self, Display, Formatter};
 
 use serde::Deserialize;
 
-#[derive(Debug, Copy, Clone, Deserialize)]
+#[derive(Debug, Copy, Clone, Deserialize, PartialEq, Eq, Hash)]
 #[serde(rename_all = "lowercase")]
 pub enum Page {
     Overview,

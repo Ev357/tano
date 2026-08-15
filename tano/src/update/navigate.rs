@@ -16,17 +16,60 @@ use crate::{
 };
 
 pub fn update_navigate(model_tx: &Sender<Model>, page: Page) -> Cmd {
+    model_tx.send_if_modified(|model| match &model.view {
+        View::Overview(props) => {
+            if let Some(index) = props.sections.selected_index {
+                model.last_cursor.insert(Page::Overview, index);
+                return true;
+            }
+
+            false
+        }
+        View::Songs(props) => {
+            if let LoadState::Loaded(list) = &props.songs
+                && let Some(index) = list.selected_index
+            {
+                model.last_cursor.insert(Page::Songs, index);
+                return true;
+            }
+
+            false
+        }
+        View::Albums(props) => {
+            if let LoadState::Loaded(list) = &props.albums
+                && let Some(index) = list.selected_index
+            {
+                model.last_cursor.insert(Page::Albums, index);
+                return true;
+            }
+
+            false
+        }
+        View::Artists(props) => {
+            if let LoadState::Loaded(list) = &props.artists
+                && let Some(index) = list.selected_index
+            {
+                model.last_cursor.insert(Page::Artists, index);
+                return true;
+            }
+
+            false
+        }
+        _ => false,
+    });
+
     let cmd = match page {
         Page::Overview => {
-            let sections = match &model_tx.borrow().config {
-                ConfigState::Loaded { pages, .. } => pages.overview.sections.clone(),
-                _ => return Cmd::None,
-            };
-
-            let sections = ListState::new(sections, 0);
-
-            model_tx.send_modify(|model| {
+            model_tx.send_if_modified(|model| {
+                let sections = match &model.config {
+                    ConfigState::Loaded { pages, .. } => {
+                        let cursor = model.last_cursor.get(&Page::Overview).copied().unwrap_or(0);
+                        ListState::new(pages.overview.sections.clone(), cursor)
+                    }
+                    _ => return false,
+                };
                 model.view = View::Overview(OverviewProps { sections });
+                true
             });
 
             Cmd::None
