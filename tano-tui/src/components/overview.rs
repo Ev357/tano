@@ -1,6 +1,5 @@
 use ratatui::{
     Frame,
-    style::{Color, Style},
     widgets::{List, ListItem},
 };
 use tano_config::pages::page::Page;
@@ -32,7 +31,7 @@ impl OverviewComponent {
             })
             .collect();
 
-        let list = List::new(items).style(Style::default().fg(Color::White));
+        let list = List::new(items);
 
         frame.render_widget(list, frame.area());
     }

@@ -1,7 +1,6 @@
 use ratatui::{
     Frame,
     layout::Alignment,
-    style::{Color, Style},
     widgets::{Block, BorderType, List, ListItem, Paragraph},
 };
 use tano_database::song::Song;
@@ -26,8 +25,7 @@ impl SongsComponent {
             LoadState::NotLoaded => {
                 let loading_widget = Paragraph::new("Loading...")
                     .alignment(Alignment::Center)
-                    .block(block)
-                    .style(Style::default().fg(Color::DarkGray));
+                    .block(block);
 
                 frame.render_widget(loading_widget, frame.area());
                 return;
@@ -49,9 +47,7 @@ impl SongsComponent {
             })
             .collect();
 
-        let list = List::new(items)
-            .block(block)
-            .style(Style::default().fg(Color::White));
+        let list = List::new(items).block(block);
 
         frame.render_widget(list, frame.area());
     }
