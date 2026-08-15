@@ -4,9 +4,13 @@ keymap = [
   { on = "q", run = "quit" },
   { on = "<C-c>", run = "quit" },
   { on = "h", run = "left" },
+  { on = "<Left>", run = "left" },
   { on = "j", run = "down" },
+  { on = "<Down>", run = "down" },
   { on = "k", run = "up" },
+  { on = "<Up>", run = "up" },
   { on = "l", run = "right" },
+  { on = "<Right>", run = "right" },
 ]
 
 page.overview.sections = ["songs"]
