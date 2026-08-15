@@ -13,6 +13,11 @@ keymap = [
   { on = "<Right>", run = "right" },
   { on = [
     "g",
+    "g",
+  ], run = "top" },
+  { on = "<S-g>", run = "bottom" },
+  { on = [
+    "g",
     "o",
   ], run = { goto = "overview" } },
   { on = [

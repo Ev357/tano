@@ -1,5 +1,5 @@
 use tano_config::{
-    keymaps::{action::Action, direction::Direction},
+    keymaps::{action::Action, direction::Direction, edge::Edge},
     pages::page::Page,
 };
 use tano_tui::{
@@ -14,6 +14,33 @@ pub fn handle_action(model_tx: &Sender<Model>, action: &Action) -> Cmd {
     match action {
         Action::Quit => Cmd::Msg(Msg::Restore),
         Action::GoTo { goto } => Cmd::Msg(Msg::Navigate(*goto)),
+        Action::Jump(edge) => {
+            let modified = model_tx.send_if_modified(|model| match &mut model.view {
+                View::Songs(props) => handle_load_state_jump(&mut props.songs, edge),
+                View::Albums(props) => handle_load_state_jump(&mut props.albums, edge),
+                View::Artists(props) => handle_load_state_jump(&mut props.artists, edge),
+                View::Overview(props) => match edge {
+                    Edge::Top => {
+                        props.sections.jump_top();
+                        true
+                    }
+                    Edge::Bottom => {
+                        props.sections.jump_bottom();
+                        true
+                    }
+                },
+                _ => false,
+            });
+
+            if !modified {
+                return Cmd::None;
+            }
+
+            Cmd::task(|handles| async move {
+                let result = handles.tui.render().await;
+                Msg::Tui(TuiMsg::RenderDone(result))
+            })
+        }
         Action::Move(direction) => {
             match &model_tx.borrow().view {
                 View::Songs(_) | View::Albums(_) | View::Artists(_) => {
@@ -35,9 +62,17 @@ pub fn handle_action(model_tx: &Sender<Model>, action: &Action) -> Cmd {
                 View::Songs(props) => handle_load_state_navigation(&mut props.songs, direction),
                 View::Albums(props) => handle_load_state_navigation(&mut props.albums, direction),
                 View::Artists(props) => handle_load_state_navigation(&mut props.artists, direction),
-                View::Overview(props) => {
-                    handle_list_state_navigation(&mut props.sections, direction)
-                }
+                View::Overview(props) => match direction {
+                    Direction::Up => {
+                        props.sections.previous();
+                        true
+                    }
+                    Direction::Down => {
+                        props.sections.next();
+                        true
+                    }
+                    _ => false,
+                },
                 _ => false,
             });
 
@@ -53,7 +88,15 @@ pub fn handle_action(model_tx: &Sender<Model>, action: &Action) -> Cmd {
     }
 }
 
-fn handle_list_state_navigation<T>(list: &mut ListState<T>, direction: &Direction) -> bool {
+fn handle_load_state_navigation<T>(
+    load_state: &mut LoadState<ListState<T>>,
+    direction: &Direction,
+) -> bool {
+    let list = match load_state {
+        LoadState::Loaded(list) => list,
+        LoadState::Loading => return false,
+    };
+
     match direction {
         Direction::Up => {
             list.previous();
@@ -67,12 +110,20 @@ fn handle_list_state_navigation<T>(list: &mut ListState<T>, direction: &Directio
     }
 }
 
-fn handle_load_state_navigation<T>(
-    load_state: &mut LoadState<ListState<T>>,
-    direction: &Direction,
-) -> bool {
-    match load_state {
-        LoadState::Loaded(list) => handle_list_state_navigation(list, direction),
-        LoadState::Loading => false,
+fn handle_load_state_jump<T>(load_state: &mut LoadState<ListState<T>>, edge: &Edge) -> bool {
+    let list = match load_state {
+        LoadState::Loaded(list) => list,
+        LoadState::Loading => return false,
+    };
+
+    match edge {
+        Edge::Top => {
+            list.jump_top();
+        }
+        Edge::Bottom => {
+            list.jump_bottom();
+        }
     }
+
+    true
 }

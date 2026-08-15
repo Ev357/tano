@@ -18,6 +18,10 @@ impl<T> ListState<T> {
         }
     }
 
+    pub fn selected(&self) -> Option<&T> {
+        Some(&self.items[self.selected_index?])
+    }
+
     pub fn next(&mut self) {
         if self.items.is_empty() {
             return;
@@ -54,7 +58,19 @@ impl<T> ListState<T> {
         }
     }
 
-    pub fn selected(&self) -> Option<&T> {
-        Some(&self.items[self.selected_index?])
+    pub fn jump_top(&mut self) {
+        if self.items.is_empty() {
+            return;
+        }
+
+        self.selected_index = Some(0);
+    }
+
+    pub fn jump_bottom(&mut self) {
+        if self.items.is_empty() {
+            return;
+        }
+
+        self.selected_index = Some(self.items.len() - 1);
     }
 }
