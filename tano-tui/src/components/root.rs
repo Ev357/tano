@@ -2,8 +2,8 @@ use ratatui::Frame;
 
 use crate::{
     components::{
-        albums::AlbumsComponent, artists::ArtistsComponent, loading::LoadingComponent,
-        overview::OverviewComponent, songs::SongsComponent,
+        album::AlbumComponent, albums::AlbumsComponent, artists::ArtistsComponent,
+        loading::LoadingComponent, overview::OverviewComponent, songs::SongsComponent,
     },
     view::View,
 };
@@ -16,6 +16,7 @@ impl RootComponent {
             View::Loading => LoadingComponent::render(frame),
             View::Songs(songs) => SongsComponent::render(frame, songs),
             View::Albums(albums) => AlbumsComponent::render(frame, albums),
+            View::Album(album) => AlbumComponent::render(frame, album),
             View::Artists(artists) => ArtistsComponent::render(frame, artists),
             View::Overview(pages) => OverviewComponent::render(frame, pages),
         }

@@ -17,6 +17,22 @@ pub fn handle_action(model_tx: &Sender<Model>, action: &Action) -> Cmd {
         Action::Jump(edge) => {
             let modified = model_tx.send_if_modified(|model| match &mut model.view {
                 View::Songs(props) => handle_load_state_jump(&mut props.songs, edge),
+                View::Album(props) => {
+                    let list = match &mut props.data {
+                        LoadState::Loaded((_, _, list)) => list,
+                        LoadState::Loading => return false,
+                    };
+                    match edge {
+                        Edge::Top => {
+                            list.jump_top();
+                            true
+                        }
+                        Edge::Bottom => {
+                            list.jump_bottom();
+                            true
+                        }
+                    }
+                }
                 View::Albums(props) => handle_load_state_jump(&mut props.albums, edge),
                 View::Artists(props) => handle_load_state_jump(&mut props.artists, edge),
                 View::Overview(props) => match edge {
@@ -43,7 +59,12 @@ pub fn handle_action(model_tx: &Sender<Model>, action: &Action) -> Cmd {
         }
         Action::Move(direction) => {
             match &model_tx.borrow().view {
-                View::Songs(_) | View::Albums(_) | View::Artists(_) => {
+                View::Album(_) => {
+                    if let Direction::Left = direction {
+                        return Cmd::Msg(Msg::Navigate(Page::Albums));
+                    }
+                }
+                View::Songs(_) | View::Artists(_) => {
                     if let Direction::Left = direction {
                         return Cmd::Msg(Msg::Navigate(Page::Overview));
                     }
@@ -55,11 +76,42 @@ pub fn handle_action(model_tx: &Sender<Model>, action: &Action) -> Cmd {
                         return Cmd::Msg(Msg::Navigate(*section));
                     }
                 }
+                View::Albums(props) => {
+                    if let Direction::Left = direction {
+                        return Cmd::Msg(Msg::Navigate(Page::Overview));
+                    }
+                    if let (Direction::Right, Some(album)) = (
+                        direction,
+                        match &props.albums {
+                            LoadState::Loaded(list) => list.selected(),
+                            _ => None,
+                        },
+                    ) {
+                        return Cmd::Msg(Msg::Navigate(Page::Album(album.id)));
+                    }
+                }
                 _ => {}
             }
 
             let modified = model_tx.send_if_modified(|model| match &mut model.view {
                 View::Songs(props) => handle_load_state_navigation(&mut props.songs, direction),
+                View::Album(props) => {
+                    let list = match &mut props.data {
+                        LoadState::Loaded((_, _, list)) => list,
+                        LoadState::Loading => return false,
+                    };
+                    match direction {
+                        Direction::Up => {
+                            list.previous();
+                            true
+                        }
+                        Direction::Down => {
+                            list.next();
+                            true
+                        }
+                        _ => false,
+                    }
+                }
                 View::Albums(props) => handle_load_state_navigation(&mut props.albums, direction),
                 View::Artists(props) => handle_load_state_navigation(&mut props.artists, direction),
                 View::Overview(props) => match direction {

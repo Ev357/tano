@@ -44,6 +44,39 @@ impl DatabaseActorHandle {
         recv.await.expect(DATABASE_ACTOR_KILLED)
     }
 
+    pub async fn get_album_artists(&self, album_id: i64) -> Result<Vec<Artist>> {
+        let (send, recv) = oneshot::channel();
+        let cmd = DatabaseCmd::GetAlbumArtists {
+            album_id,
+            respond_to: send,
+        };
+
+        let _ = self.sender.send(cmd).await;
+        recv.await.expect(DATABASE_ACTOR_KILLED)
+    }
+
+    pub async fn get_album(&self, id: i64) -> Result<Album> {
+        let (send, recv) = oneshot::channel();
+        let cmd = DatabaseCmd::GetAlbum {
+            id,
+            respond_to: send,
+        };
+
+        let _ = self.sender.send(cmd).await;
+        recv.await.expect(DATABASE_ACTOR_KILLED)
+    }
+
+    pub async fn get_album_songs(&self, album_id: i64) -> Result<Vec<Song>> {
+        let (send, recv) = oneshot::channel();
+        let cmd = DatabaseCmd::GetAlbumSongs {
+            album_id,
+            respond_to: send,
+        };
+
+        let _ = self.sender.send(cmd).await;
+        recv.await.expect(DATABASE_ACTOR_KILLED)
+    }
+
     pub async fn get_artists(&self) -> Result<Vec<Artist>> {
         let (send, recv) = oneshot::channel();
         let cmd = DatabaseCmd::GetArtists { respond_to: send };

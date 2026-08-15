@@ -38,6 +38,18 @@ impl DatabaseActor {
             DatabaseCmd::GetAlbums { respond_to } => {
                 let _ = respond_to.send(self.get_albums().await);
             }
+            DatabaseCmd::GetAlbumArtists { album_id, respond_to } => {
+                let _ = respond_to.send(self.get_album_artists(album_id).await);
+            }
+            DatabaseCmd::GetAlbum { id, respond_to } => {
+                let _ = respond_to.send(self.get_album(id).await);
+            }
+            DatabaseCmd::GetAlbumSongs {
+                album_id,
+                respond_to,
+            } => {
+                let _ = respond_to.send(self.get_album_songs(album_id).await);
+            }
             DatabaseCmd::GetArtists { respond_to } => {
                 let _ = respond_to.send(self.get_artists().await);
             }
@@ -136,6 +148,18 @@ impl DatabaseActor {
 
     async fn get_albums(&self) -> Result<Vec<Album>> {
         db::get_albums(self.pool.as_ref().unwrap()).await
+    }
+
+    async fn get_album(&self, id: i64) -> Result<Album> {
+        db::get_album(self.pool.as_ref().unwrap(), id).await
+    }
+
+    async fn get_album_artists(&self, album_id: i64) -> Result<Vec<Artist>> {
+        db::get_album_artists(self.pool.as_ref().unwrap(), album_id).await
+    }
+
+    async fn get_album_songs(&self, album_id: i64) -> Result<Vec<Song>> {
+        db::get_album_songs(self.pool.as_ref().unwrap(), album_id).await
     }
 
     async fn get_artists(&self) -> Result<Vec<Artist>> {

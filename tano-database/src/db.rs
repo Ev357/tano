@@ -28,6 +28,64 @@ pub async fn get_songs(executor: impl Executor<'_, Database = Sqlite>) -> Result
     Ok(songs)
 }
 
+pub async fn get_album_songs(
+    executor: impl Executor<'_, Database = Sqlite>,
+    album_id: i64,
+) -> Result<Vec<Song>> {
+    let songs = sqlx::query_as!(
+        Song,
+        r#"
+        SELECT id, provider_id, album_id, title, track_number, duration, year
+        FROM songs
+        WHERE album_id = ?
+        ORDER BY track_number, title
+        "#,
+        album_id
+    )
+    .fetch_all(executor)
+    .await?;
+
+    Ok(songs)
+}
+
+pub async fn get_album_artists(
+    executor: impl Executor<'_, Database = Sqlite>,
+    album_id: i64,
+) -> Result<Vec<Artist>> {
+    let artists = sqlx::query_as!(
+        Artist,
+        r#"
+        SELECT DISTINCT artists.id, artists.provider_id, artists.name
+        FROM artists
+        JOIN song_artists ON artists.id = song_artists.artist_id
+        JOIN songs ON song_artists.song_id = songs.id
+        WHERE songs.album_id = ? AND song_artists.role = 1
+        ORDER BY artists.name
+        "#,
+        album_id
+    )
+    .fetch_all(executor)
+    .await?;
+
+    Ok(artists)
+}
+
+pub async fn get_album(executor: impl Executor<'_, Database = Sqlite>, id: i64) -> Result<Album> {
+    let album = sqlx::query_as!(
+        Album,
+        r#"
+        SELECT id, provider_id, title
+        FROM albums
+        WHERE id = ?
+        "#,
+        id
+    )
+    .fetch_one(executor)
+    .await?;
+
+    Ok(album)
+}
+
 pub async fn get_albums(executor: impl Executor<'_, Database = Sqlite>) -> Result<Vec<Album>> {
     let albums = sqlx::query_as!(
         Album,
