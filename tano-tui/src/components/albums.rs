@@ -22,7 +22,7 @@ impl AlbumsComponent {
 
         let albums = match &props.albums {
             LoadState::Loaded(albums) => albums,
-            LoadState::NotLoaded => {
+            LoadState::Loading => {
                 let loading_widget = Paragraph::new("Loading...")
                     .alignment(Alignment::Center)
                     .block(block);

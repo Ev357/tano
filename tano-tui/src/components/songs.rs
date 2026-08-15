@@ -22,7 +22,7 @@ impl SongsComponent {
 
         let songs = match &props.songs {
             LoadState::Loaded(songs) => songs,
-            LoadState::NotLoaded => {
+            LoadState::Loading => {
                 let loading_widget = Paragraph::new("Loading...")
                     .alignment(Alignment::Center)
                     .block(block);

@@ -34,7 +34,7 @@ pub fn update_navigate(model_tx: &Sender<Model>, page: Page) -> Cmd {
         Page::Songs => {
             model_tx.send_modify(|model| {
                 model.view = View::Songs(SongsProps {
-                    songs: LoadState::NotLoaded,
+                    songs: LoadState::Loading,
                 });
             });
 
@@ -46,7 +46,7 @@ pub fn update_navigate(model_tx: &Sender<Model>, page: Page) -> Cmd {
         Page::Albums => {
             model_tx.send_modify(|model| {
                 model.view = View::Albums(AlbumsProps {
-                    albums: LoadState::NotLoaded,
+                    albums: LoadState::Loading,
                 });
             });
 
@@ -58,7 +58,7 @@ pub fn update_navigate(model_tx: &Sender<Model>, page: Page) -> Cmd {
         Page::Artists => {
             model_tx.send_modify(|model| {
                 model.view = View::Artists(ArtistsProps {
-                    artists: LoadState::NotLoaded,
+                    artists: LoadState::Loading,
                 });
             });
 
