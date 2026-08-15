@@ -79,12 +79,23 @@ pub fn update_navigate(model_tx: &Sender<Model>, page: Page) -> Cmd {
             })
         }
         Page::Album(album_id) => {
-            model_tx.send_modify(|model| {
+            let modified = model_tx.send_if_modified(|model| {
+                let config = match &model.config {
+                    ConfigState::Loaded { pages, .. } => pages.album.clone(),
+                    _ => return false,
+                };
+
                 model.view = View::Album(AlbumProps {
                     album_id,
+                    config,
                     data: LoadState::Loading,
                 });
+                true
             });
+
+            if !modified {
+                return Cmd::None;
+            }
 
             Cmd::task(move |handles| async move {
                 let (songs, album, artists) = tokio::join!(

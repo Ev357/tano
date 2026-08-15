@@ -3,6 +3,7 @@ use ratatui::{
     layout::Alignment,
     widgets::{Block, BorderType, List, ListItem, Paragraph},
 };
+use tano_config::pages::album::AlbumPage;
 use tano_database::{album::Album, artist::Artist, song::Song};
 
 use crate::utils::{list_state::ListState, load_state::LoadState};
@@ -10,6 +11,7 @@ use crate::utils::{list_state::ListState, load_state::LoadState};
 #[derive(Debug, Clone)]
 pub struct AlbumProps {
     pub album_id: i64,
+    pub config: AlbumPage,
     pub data: LoadState<(Album, Vec<Artist>, ListState<Song>)>,
 }
 
@@ -31,12 +33,12 @@ impl AlbumComponent {
             }
         };
 
-        let artist_names: Vec<String> = artists.iter().map(|a| a.name.clone()).collect();
-        let artist_str = if artist_names.is_empty() {
-            String::new()
-        } else {
-            format!(" by {}", artist_names.join(", "))
+        let artist_names: Vec<_> = artists.iter().map(|artist| artist.name.clone()).collect();
+        let artist_str = match (props.config.hide_artists, artist_names.is_empty()) {
+            (false, false) => format!(" by {}", artist_names.join(", ")),
+            _ => String::new(),
         };
+
         let title = format!("{}{}", album.title.as_str(), artist_str);
 
         let block = block.title(title.as_str());
@@ -46,10 +48,15 @@ impl AlbumComponent {
             .iter()
             .enumerate()
             .map(|(index, song)| {
+                let track_prefix = match (props.config.hide_track_numbers, song.track_number) {
+                    (false, Some(track_number)) => format!("{:02} - ", track_number),
+                    _ => String::new(),
+                };
+
                 let title = if songs.selected_index == Some(index) {
-                    format!("> {}", song.title)
+                    format!("> {}{}", track_prefix, song.title)
                 } else {
-                    format!("  {}", song.title)
+                    format!("  {}{}", track_prefix, song.title)
                 };
 
                 ListItem::new(title)

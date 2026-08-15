@@ -35,5 +35,7 @@ keymap = [
 ]
 
 page.overview.sections = ["songs", "albums", "artists"]
+page.album.hide_track_numbers = false
+page.album.hide_artists = false
 
 startup_page = "overview"

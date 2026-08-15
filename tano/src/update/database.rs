@@ -10,7 +10,10 @@ use tano_tui::{
 };
 use tokio::sync::watch::Sender;
 
-use crate::{cmd::Cmd, model::Model};
+use crate::{
+    cmd::Cmd,
+    model::{Model, config_state::ConfigState},
+};
 
 #[derive(Debug)]
 #[allow(clippy::enum_variant_names)]
@@ -69,17 +72,25 @@ pub fn update_database(model_tx: &Sender<Model>, database_msg: DatabaseMsg) -> C
             songs,
         } => match (album, artists, songs) {
             (Ok(album), Ok(artists), Ok(songs)) => {
-                model_tx.send_modify(|model| {
+                model_tx.send_if_modified(|model| {
                     let cursor = model
                         .last_cursor
                         .get(&Page::Album(album_id))
                         .copied()
                         .unwrap_or(0);
                     let songs = ListState::new(songs, cursor);
+
+                    let config = match &model.config {
+                        ConfigState::Loaded { pages, .. } => pages.album.clone(),
+                        _ => return false,
+                    };
+
                     model.view = View::Album(AlbumProps {
                         album_id,
+                        config,
                         data: LoadState::Loaded((album, artists, songs)),
-                    })
+                    });
+                    true
                 });
 
                 Cmd::None

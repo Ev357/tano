@@ -38,7 +38,10 @@ impl DatabaseActor {
             DatabaseCmd::GetAlbums { respond_to } => {
                 let _ = respond_to.send(self.get_albums().await);
             }
-            DatabaseCmd::GetAlbumArtists { album_id, respond_to } => {
+            DatabaseCmd::GetAlbumArtists {
+                album_id,
+                respond_to,
+            } => {
                 let _ = respond_to.send(self.get_album_artists(album_id).await);
             }
             DatabaseCmd::GetAlbum { id, respond_to } => {

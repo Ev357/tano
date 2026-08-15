@@ -6,7 +6,6 @@ A terminal music player.
 - [ ] Jellyfin audio source.
   - [ ] Streaming support.
   - [ ] Cache support.
-- [ ] UI.
 
 ## Inspiration
 - [Symfonium](https://symfonium.app)
