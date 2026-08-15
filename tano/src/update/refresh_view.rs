@@ -1,5 +1,5 @@
 use tano_tui::{utils::list_state::ListState, view::View};
-use tokio::sync::watch;
+use tokio::sync::watch::Sender;
 
 use crate::{
     cmd::Cmd,
@@ -8,7 +8,7 @@ use crate::{
     update::tui::TuiMsg,
 };
 
-pub fn update_refresh_view(model_tx: &watch::Sender<Model>) -> Cmd {
+pub fn update_refresh_view(model_tx: &Sender<Model>) -> Cmd {
     let pages = match &model_tx.borrow().config {
         ConfigState::Loaded { pages, .. } => pages.clone(),
         _ => return Cmd::None,

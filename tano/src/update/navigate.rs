@@ -6,7 +6,7 @@ use tano_tui::{
     utils::{list_state::ListState, load_state::LoadState},
     view::View,
 };
-use tokio::sync::watch;
+use tokio::sync::watch::Sender;
 
 use crate::{
     cmd::Cmd,
@@ -15,7 +15,7 @@ use crate::{
     update::{database::DatabaseMsg, tui::TuiMsg},
 };
 
-pub fn update_navigate(model_tx: &watch::Sender<Model>, page: Page) -> Cmd {
+pub fn update_navigate(model_tx: &Sender<Model>, page: Page) -> Cmd {
     let cmd = match page {
         Page::Overview => {
             let sections = match &model_tx.borrow().config {

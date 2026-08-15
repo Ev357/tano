@@ -1,6 +1,6 @@
 use tano_providers::ProviderType;
 use tano_tui::view::View;
-use tokio::sync::watch;
+use tokio::sync::watch::Sender;
 
 use crate::{
     cmd::Cmd,
@@ -16,7 +16,7 @@ mod full_sync;
 pub mod msg;
 mod sync;
 
-pub fn update_providers(model_tx: &watch::Sender<Model>, providers_msg: ProvidersMsg) -> Cmd {
+pub fn update_providers(model_tx: &Sender<Model>, providers_msg: ProvidersMsg) -> Cmd {
     match providers_msg {
         ProvidersMsg::FullSync => {
             let local_providers: Vec<_> = model_tx

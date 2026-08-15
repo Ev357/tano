@@ -5,7 +5,7 @@ use tano_tui::{
     utils::{list_state::ListState, load_state::LoadState},
     view::View,
 };
-use tokio::sync::watch;
+use tokio::sync::watch::Sender;
 
 use crate::{cmd::Cmd, model::Model};
 
@@ -17,7 +17,7 @@ pub enum DatabaseMsg {
     ArtistsLoaded { artists: Result<Vec<Artist>> },
 }
 
-pub fn update_database(model_tx: &watch::Sender<Model>, database_msg: DatabaseMsg) -> Cmd {
+pub fn update_database(model_tx: &Sender<Model>, database_msg: DatabaseMsg) -> Cmd {
     match database_msg {
         DatabaseMsg::SongsLoaded { songs } => match songs {
             Ok(songs) => {

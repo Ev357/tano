@@ -1,5 +1,5 @@
 use tano_tui::view::View;
-use tokio::sync::watch;
+use tokio::sync::watch::Sender;
 
 use crate::{
     cmd::Cmd,
@@ -27,7 +27,7 @@ pub mod refresh_view;
 pub mod tui;
 pub mod watcher;
 
-pub fn update(model_tx: &watch::Sender<Model>, msg: Msg) -> Cmd {
+pub fn update(model_tx: &Sender<Model>, msg: Msg) -> Cmd {
     match msg {
         Msg::Init => Cmd::Batch(vec![
             Cmd::task(|handles| async move {

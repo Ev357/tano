@@ -1,6 +1,6 @@
 use tano_shared::{get_config_dir::get_config_dir, get_config_file::get_config_file};
 use tano_watcher::{actor::msg::WatcherMsg, watch_id::WatchId};
-use tokio::sync::watch;
+use tokio::sync::watch::Sender;
 
 use crate::{
     cmd::Cmd,
@@ -12,7 +12,7 @@ use crate::{
     update::{config::ConfigMsg, providers::msg::ProvidersMsg},
 };
 
-pub fn update_watcher(model_tx: &watch::Sender<Model>, watcher_msg: WatcherMsg) -> Cmd {
+pub fn update_watcher(model_tx: &Sender<Model>, watcher_msg: WatcherMsg) -> Cmd {
     match watcher_msg {
         WatcherMsg::WatchEvent { watch_id, path } => match watch_id {
             WatchId::Config => {

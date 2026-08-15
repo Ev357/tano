@@ -1,6 +1,6 @@
 use color_eyre::eyre::Result;
 use tano_config::config::Config;
-use tokio::sync::watch;
+use tokio::sync::watch::Sender;
 
 #[derive(Debug)]
 pub enum ConfigMsg {
@@ -17,7 +17,7 @@ use crate::{
     msg::Msg,
 };
 
-pub fn update_config(model_tx: &watch::Sender<Model>, config_msg: ConfigMsg) -> Cmd {
+pub fn update_config(model_tx: &Sender<Model>, config_msg: ConfigMsg) -> Cmd {
     match config_msg {
         ConfigMsg::ConfigLoaded(config) => match config {
             Ok(config) => {
