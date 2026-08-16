@@ -15,16 +15,16 @@ pub struct OverviewComponent;
 
 impl OverviewComponent {
     pub fn render(frame: &mut Frame, props: &OverviewProps) {
+        let available_height = frame.area().height;
+
         let items: Vec<ListItem> = props
             .sections
-            .items
-            .iter()
-            .enumerate()
-            .map(|(index, song)| {
-                let title = if props.sections.selected_index == Some(index) {
-                    format!("> {}", song)
+            .displayed(available_height)
+            .map(|(is_selected, page)| {
+                let title = if is_selected {
+                    format!("> {}", page)
                 } else {
-                    format!("  {}", song)
+                    format!("  {}", page)
                 };
 
                 ListItem::new(title)

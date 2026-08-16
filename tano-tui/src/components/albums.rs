@@ -32,12 +32,12 @@ impl AlbumsComponent {
             }
         };
 
+        let inner_area = block.inner(frame.area());
+
         let items: Vec<ListItem> = albums
-            .items
-            .iter()
-            .enumerate()
-            .map(|(index, album)| {
-                let title = if albums.selected_index == Some(index) {
+            .displayed(inner_area.height)
+            .map(|(is_selected, album)| {
+                let title = if is_selected {
                     format!("> {}", album.title)
                 } else {
                     format!("  {}", album.title)

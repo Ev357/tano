@@ -43,17 +43,17 @@ impl AlbumComponent {
 
         let block = block.title(title.as_str());
 
+        let inner_area = block.inner(frame.area());
+
         let items: Vec<ListItem> = songs
-            .items
-            .iter()
-            .enumerate()
-            .map(|(index, song)| {
+            .displayed(inner_area.height)
+            .map(|(is_selected, song)| {
                 let track_prefix = match (props.config.hide_track_numbers, song.track_number) {
                     (false, Some(track_number)) => format!("{:02} - ", track_number),
                     _ => String::new(),
                 };
 
-                let title = if songs.selected_index == Some(index) {
+                let title = if is_selected {
                     format!("> {}{}", track_prefix, song.title)
                 } else {
                     format!("  {}{}", track_prefix, song.title)

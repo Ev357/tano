@@ -32,12 +32,12 @@ impl SongsComponent {
             }
         };
 
+        let inner_area = block.inner(frame.area());
+
         let items: Vec<ListItem> = songs
-            .items
-            .iter()
-            .enumerate()
-            .map(|(index, song)| {
-                let title = if songs.selected_index == Some(index) {
+            .displayed(inner_area.height)
+            .map(|(is_selected, song)| {
+                let title = if is_selected {
                     format!("> {}", song.title)
                 } else {
                     format!("  {}", song.title)
