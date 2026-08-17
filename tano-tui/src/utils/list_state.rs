@@ -94,6 +94,26 @@ impl<T> ListState<T> {
         self.align_offset();
     }
 
+    pub fn scroll_up(&mut self) {
+        if self.items.is_empty() {
+            return;
+        }
+
+        let selected = self.selected_index.unwrap_or(0);
+        self.selected_index = Some(selected.saturating_sub(1));
+        self.align_offset();
+    }
+
+    pub fn scroll_down(&mut self) {
+        if self.items.is_empty() {
+            return;
+        }
+
+        let selected = self.selected_index.unwrap_or(0);
+        self.selected_index = Some((selected + 1).min(self.items.len().saturating_sub(1)));
+        self.align_offset();
+    }
+
     pub fn scroll_percent(&mut self, percent: i32) {
         let height = get_list_area().height as i32;
         if height == 0 || self.items.is_empty() {

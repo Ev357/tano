@@ -214,3 +214,23 @@ fn handle_load_state_scroll<T>(load_state: &mut LoadState<ListState<T>>, percent
     list.scroll_percent(percent);
     true
 }
+
+pub fn handle_load_state_scroll_down<T>(load_state: &mut LoadState<ListState<T>>) -> bool {
+    let list = match load_state {
+        LoadState::Loaded(list) => list,
+        LoadState::Loading => return false,
+    };
+
+    list.scroll_down();
+    true
+}
+
+pub fn handle_load_state_scroll_up<T>(load_state: &mut LoadState<ListState<T>>) -> bool {
+    let list = match load_state {
+        LoadState::Loaded(list) => list,
+        LoadState::Loading => return false,
+    };
+
+    list.scroll_up();
+    true
+}

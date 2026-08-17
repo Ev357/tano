@@ -2,7 +2,7 @@ use std::io::{Stdout, stdout};
 
 use color_eyre::eyre::Result;
 use crossterm::{
-    event::{KeyboardEnhancementFlags, PushKeyboardEnhancementFlags},
+    event::{EnableMouseCapture, KeyboardEnhancementFlags, PushKeyboardEnhancementFlags},
     execute,
     terminal::{EnterAlternateScreen, enable_raw_mode},
 };
@@ -14,6 +14,7 @@ pub fn try_init() -> Result<Terminal<CrosstermBackend<Stdout>>> {
     execute!(
         stdout,
         EnterAlternateScreen,
+        EnableMouseCapture,
         PushKeyboardEnhancementFlags(
             KeyboardEnhancementFlags::DISAMBIGUATE_ESCAPE_CODES
                 | KeyboardEnhancementFlags::REPORT_ALTERNATE_KEYS
