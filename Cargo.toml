@@ -11,3 +11,12 @@ members = [
   "tano-tui",
   "tano-watcher",
 ]
+
+[workspace.package]
+edition = "2024"
+version = "0.1.0"
+license = "MIT"
+authors = ["Lucas Gager <evest.dev@gmail.com>"]
+homepage = "https://github.com/Ev357/tano"
+repository = "https://github.com/Ev357/tano"
+rust-version = "1.100.0"
