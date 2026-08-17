@@ -41,7 +41,7 @@ async fn run() -> Result<()> {
     let database_handle = DatabaseActorHandle::default();
     let tui_handle = TuiActorHandle::new(model_rx.clone())?;
     let (backend_msg_tx, mut backend_msg_rx) = mpsc::channel::<BackendMsg>(8);
-    let backend_handle = BackendActorHandle::new(model_rx.clone(), backend_msg_tx);
+    let backend_handle = BackendActorHandle::new(model_rx.clone(), backend_msg_tx)?;
     let (watcher_msg_tx, mut watcher_msg_rx) = mpsc::channel::<WatcherMsg>(8);
 
     let watcher_handle = WatcherActorHandle::new(model_rx, watcher_msg_tx)?;

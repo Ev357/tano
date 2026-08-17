@@ -42,6 +42,12 @@ impl<T: TuiModel> TuiActor<T> {
             TuiCmd::Restore { respond_to } => {
                 let _ = respond_to.send(restore());
             }
+            TuiCmd::Resume { respond_to } => {
+                let result = try_init().map(|term| {
+                    self.terminal = term;
+                });
+                let _ = respond_to.send(result);
+            }
         }
     }
 

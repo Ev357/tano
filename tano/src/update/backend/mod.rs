@@ -124,6 +124,18 @@ pub fn update_backend(model_tx: &Sender<Model>, backend_msg: BackendMsg) -> Cmd 
             },
             Err(error) => Cmd::Error(error.into()),
         },
+        BackendMsg::Suspend => Cmd::task(|handles| async move {
+            let _ = handles.tui.restore().await;
+            handles.backend.suspend().await;
+
+            Msg::None
+        }),
+        BackendMsg::Resume => Cmd::task(|handles| async move {
+            let _ = handles.tui.resume().await;
+            let result = handles.tui.render().await;
+
+            Msg::Tui(TuiMsg::RenderDone(result))
+        }),
         BackendMsg::Error(report) => Cmd::Error(report),
     }
 }

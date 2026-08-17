@@ -1,3 +1,4 @@
+use tano_backend::actor::msg::BackendMsg;
 use tano_config::{
     keymaps::{action::Action, direction::Direction, edge::Edge},
     pages::page::Page,
@@ -13,6 +14,7 @@ use crate::{cmd::Cmd, model::Model, msg::Msg, update::tui::TuiMsg};
 pub fn handle_action(model_tx: &Sender<Model>, action: &Action) -> Cmd {
     match action {
         Action::Quit => Cmd::Msg(Msg::Restore),
+        Action::Suspend => Cmd::Msg(Msg::Backend(BackendMsg::Suspend)),
         Action::GoTo { goto } => Cmd::Msg(Msg::Navigate(*goto)),
         Action::Jump(edge) => {
             let modified = model_tx.send_if_modified(|model| match &mut model.view {

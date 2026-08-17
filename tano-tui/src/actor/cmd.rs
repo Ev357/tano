@@ -8,4 +8,7 @@ pub enum TuiCmd {
     Restore {
         respond_to: oneshot::Sender<Result<()>>,
     },
+    Resume {
+        respond_to: oneshot::Sender<Result<()>>,
+    },
 }

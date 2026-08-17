@@ -3,6 +3,7 @@ provider = [{ type = "local", path = "~/Music/" }]
 keymap = [
   { on = "q", run = "quit" },
   { on = "<C-c>", run = "quit" },
+  { on = "<C-z>", run = "suspend" },
   { on = "h", run = "left" },
   { on = "<Left>", run = "left" },
   { on = "j", run = "down" },

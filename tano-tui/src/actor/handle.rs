@@ -40,4 +40,12 @@ impl TuiActorHandle {
         let _ = self.sender.send(cmd).await;
         recv.await.expect(TUI_ACTOR_KILLED)
     }
+
+    pub async fn resume(&self) -> Result<()> {
+        let (send, recv) = oneshot::channel();
+        let cmd = TuiCmd::Resume { respond_to: send };
+
+        let _ = self.sender.send(cmd).await;
+        recv.await.expect(TUI_ACTOR_KILLED)
+    }
 }

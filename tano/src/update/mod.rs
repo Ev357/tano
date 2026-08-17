@@ -85,5 +85,6 @@ pub fn update(model_tx: &Sender<Model>, msg: Msg) -> Cmd {
         }
         Msg::Navigate(page) => update_navigate(model_tx, page),
         Msg::RefreshView => update_refresh_view(model_tx),
+        Msg::None => Cmd::None,
     }
 }

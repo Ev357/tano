@@ -7,4 +7,6 @@ use crossterm::event::Event;
 pub enum BackendMsg {
     Event(Result<Event, io::Error>),
     Error(Report),
+    Suspend,
+    Resume,
 }

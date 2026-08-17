@@ -23,4 +23,5 @@ pub enum Msg {
     InitInitialView { startup_page: Page },
     Navigate(Page),
     RefreshView,
+    None,
 }

@@ -10,6 +10,7 @@ use crate::{
 #[serde(rename_all = "lowercase")]
 pub enum Action {
     Quit,
+    Suspend,
     #[serde(untagged)]
     Jump(Edge),
     #[serde(untagged)]
