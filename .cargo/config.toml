@@ -1,2 +1,3 @@
 [build]
 rustc-workspace-wrapper = "clippy-driver"
+rustflags = ["-Z", "threads=8"]
