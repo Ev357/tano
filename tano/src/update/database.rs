@@ -13,6 +13,7 @@ use tokio::sync::watch::Sender;
 use crate::{
     cmd::Cmd,
     model::{Model, config_state::ConfigState},
+    msg::Msg,
 };
 
 #[derive(Debug)]
@@ -26,7 +27,7 @@ pub enum DatabaseMsg {
     },
     AlbumSongsLoaded {
         album_id: i64,
-        album: Result<Album>,
+        album: Result<Option<Album>>,
         artists: Result<Vec<Artist>>,
         songs: Result<Vec<Song>>,
     },
@@ -71,7 +72,7 @@ pub fn update_database(model_tx: &Sender<Model>, database_msg: DatabaseMsg) -> C
             artists,
             songs,
         } => match (album, artists, songs) {
-            (Ok(album), Ok(artists), Ok(songs)) => {
+            (Ok(Some(album)), Ok(artists), Ok(songs)) => {
                 model_tx.send_if_modified(|model| {
                     let cursor = model
                         .last_cursor
@@ -95,6 +96,7 @@ pub fn update_database(model_tx: &Sender<Model>, database_msg: DatabaseMsg) -> C
 
                 Cmd::None
             }
+            (Ok(None), _, _) => Cmd::Msg(Msg::Navigate(Page::Albums)),
             (Err(report), _, _) | (_, Err(report), _) | (_, _, Err(report)) => Cmd::Error(report),
         },
         DatabaseMsg::ArtistsLoaded { artists } => match artists {

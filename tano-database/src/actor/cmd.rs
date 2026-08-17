@@ -25,7 +25,7 @@ pub enum DatabaseCmd {
     },
     GetAlbum {
         id: i64,
-        respond_to: oneshot::Sender<Result<Album>>,
+        respond_to: oneshot::Sender<Result<Option<Album>>>,
     },
     GetAlbumSongs {
         album_id: i64,

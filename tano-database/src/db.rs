@@ -70,7 +70,10 @@ pub async fn get_album_artists(
     Ok(artists)
 }
 
-pub async fn get_album(executor: impl Executor<'_, Database = Sqlite>, id: i64) -> Result<Album> {
+pub async fn get_album(
+    executor: impl Executor<'_, Database = Sqlite>,
+    id: i64,
+) -> Result<Option<Album>> {
     let album = sqlx::query_as!(
         Album,
         r#"
@@ -80,7 +83,7 @@ pub async fn get_album(executor: impl Executor<'_, Database = Sqlite>, id: i64) 
         "#,
         id
     )
-    .fetch_one(executor)
+    .fetch_optional(executor)
     .await?;
 
     Ok(album)

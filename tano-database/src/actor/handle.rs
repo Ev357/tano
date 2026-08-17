@@ -55,7 +55,7 @@ impl DatabaseActorHandle {
         recv.await.expect(DATABASE_ACTOR_KILLED)
     }
 
-    pub async fn get_album(&self, id: i64) -> Result<Album> {
+    pub async fn get_album(&self, id: i64) -> Result<Option<Album>> {
         let (send, recv) = oneshot::channel();
         let cmd = DatabaseCmd::GetAlbum {
             id,

@@ -52,12 +52,37 @@ pub fn update_providers(model_tx: &Sender<Model>, providers_msg: ProvidersMsg) -
                 return Cmd::Error(error);
             }
 
-            match model_tx.borrow().view {
+            match &model_tx.borrow().view {
                 View::Songs(_) => Cmd::task(|handles| async move {
                     let songs = handles.database.get_songs().await;
                     Msg::Database(DatabaseMsg::SongsLoaded { songs })
                 }),
-                _ => Cmd::None,
+                View::Albums(_) => Cmd::task(|handles| async move {
+                    let albums = handles.database.get_albums().await;
+                    Msg::Database(DatabaseMsg::AlbumsLoaded { albums })
+                }),
+                View::Artists(_) => Cmd::task(|handles| async move {
+                    let artists = handles.database.get_artists().await;
+                    Msg::Database(DatabaseMsg::ArtistsLoaded { artists })
+                }),
+                View::Album(props) => {
+                    let album_id = props.album_id;
+
+                    Cmd::task(move |handles| async move {
+                        let (songs, album, artists) = tokio::join!(
+                            handles.database.get_album_songs(album_id),
+                            handles.database.get_album(album_id),
+                            handles.database.get_album_artists(album_id)
+                        );
+                        Msg::Database(DatabaseMsg::AlbumSongsLoaded {
+                            album_id,
+                            album,
+                            artists,
+                            songs,
+                        })
+                    })
+                }
+                View::Loading | View::Overview(_) => Cmd::None,
             }
         }
         ProvidersMsg::Sync { provider_id, path } => Cmd::task(move |handles| async move {

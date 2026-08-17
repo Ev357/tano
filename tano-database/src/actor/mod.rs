@@ -153,7 +153,7 @@ impl DatabaseActor {
         db::get_albums(self.pool.as_ref().unwrap()).await
     }
 
-    async fn get_album(&self, id: i64) -> Result<Album> {
+    async fn get_album(&self, id: i64) -> Result<Option<Album>> {
         db::get_album(self.pool.as_ref().unwrap(), id).await
     }
 
