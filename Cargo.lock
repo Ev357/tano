@@ -2392,7 +2392,7 @@ dependencies = [
 
 [[package]]
 name = "tano"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "color-eyre",
  "crossterm",
@@ -2413,7 +2413,7 @@ dependencies = [
 
 [[package]]
 name = "tano-backend"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "color-eyre",
  "crossterm",
@@ -2424,7 +2424,7 @@ dependencies = [
 
 [[package]]
 name = "tano-config"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "bitflags 2.13.1",
  "color-eyre",
@@ -2440,7 +2440,7 @@ dependencies = [
 
 [[package]]
 name = "tano-database"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "color-eyre",
  "sqlx",
@@ -2452,11 +2452,11 @@ dependencies = [
 
 [[package]]
 name = "tano-macro"
-version = "0.1.0"
+version = "0.1.1"
 
 [[package]]
 name = "tano-providers"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "color-eyre",
  "lofty",
@@ -2468,7 +2468,7 @@ dependencies = [
 
 [[package]]
 name = "tano-shared"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "color-eyre",
  "directories",
@@ -2476,7 +2476,7 @@ dependencies = [
 
 [[package]]
 name = "tano-tui"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "color-eyre",
  "crossterm",
@@ -2489,7 +2489,7 @@ dependencies = [
 
 [[package]]
 name = "tano-watcher"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "bitflags 2.13.1",
  "color-eyre",

@@ -10,9 +10,10 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-tano-macro = { path = "../tano-macro", version = "0.1.0" }
-tano-shared = { path = "../tano-shared", version = "0.1.0" }
-tano-providers = { path = "../tano-providers", version = "0.1.0" }
+tano-macro = { path = "../tano-macro", version = "0.1.1" }
+tano-shared = { path = "../tano-shared", version = "0.1.1" }
+tano-providers = { path = "../tano-providers", version = "0.1.1" }
+
 color-eyre = "0.6.5"
 tokio = { version = "1.52.3", features = ["full"] }
 tracing = "0.1.44"

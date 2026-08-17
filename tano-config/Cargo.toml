@@ -10,8 +10,9 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-tano-shared = { path = "../tano-shared", version = "0.1.0" }
-tano-macro = { path = "../tano-macro", version = "0.1.0" }
+tano-shared = { path = "../tano-shared", version = "0.1.1" }
+tano-macro = { path = "../tano-macro", version = "0.1.1" }
+
 color-eyre = "0.6.5"
 directories = "6.0.0"
 serde = { version = "1.0.228", features = ["derive"] }
