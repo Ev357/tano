@@ -1,7 +1,7 @@
 use ratatui::{
     Frame,
     layout::Alignment,
-    widgets::{Block, BorderType, List, ListItem, Paragraph},
+    widgets::{Block, BorderType, List, Paragraph},
 };
 use tano_config::pages::album::AlbumPage;
 use tano_database::{album::Album, artist::Artist, song::Song};
@@ -45,23 +45,18 @@ impl AlbumComponent {
 
         update_list_area(block.inner(frame.area()));
 
-        let items: Vec<ListItem> = songs
-            .displayed()
-            .map(|(is_selected, song)| {
-                let track_prefix = match (props.config.hide_track_numbers, song.track_number) {
-                    (false, Some(track_number)) => format!("{:02} - ", track_number),
-                    _ => String::new(),
-                };
+        let items = songs.to_list_items(|song| {
+            let track_prefix = if props.config.hide_track_numbers {
+                String::new()
+            } else {
+                match song.track_number {
+                    Some(track_number) => format!("{:02} - ", track_number),
+                    None => String::new(),
+                }
+            };
 
-                let title = if is_selected {
-                    format!("> {}{}", track_prefix, song.title)
-                } else {
-                    format!("  {}{}", track_prefix, song.title)
-                };
-
-                ListItem::new(title)
-            })
-            .collect();
+            format!("{}{}", track_prefix, song.title)
+        });
 
         let list = List::new(items).block(block);
 

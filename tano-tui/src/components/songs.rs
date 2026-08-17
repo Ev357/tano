@@ -1,7 +1,7 @@
 use ratatui::{
     Frame,
     layout::Alignment,
-    widgets::{Block, BorderType, List, ListItem, Paragraph},
+    widgets::{Block, BorderType, List, Paragraph},
 };
 use tano_database::song::Song;
 
@@ -32,20 +32,11 @@ impl SongsComponent {
             }
         };
 
-        update_list_area(block.inner(frame.area()));
+        let inner_area = block.inner(frame.area());
 
-        let items: Vec<ListItem> = songs
-            .displayed()
-            .map(|(is_selected, song)| {
-                let title = if is_selected {
-                    format!("> {}", song.title)
-                } else {
-                    format!("  {}", song.title)
-                };
+        update_list_area(inner_area);
 
-                ListItem::new(title)
-            })
-            .collect();
+        let items = songs.to_list_items(|song| song.title.clone());
 
         let list = List::new(items).block(block);
 

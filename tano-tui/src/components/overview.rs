@@ -1,7 +1,4 @@
-use ratatui::{
-    Frame,
-    widgets::{List, ListItem},
-};
+use ratatui::{Frame, widgets::List};
 use tano_config::pages::page::Page;
 
 use crate::utils::{layout_cache::update_list_area, list_state::ListState};
@@ -17,19 +14,7 @@ impl OverviewComponent {
     pub fn render(frame: &mut Frame, props: &OverviewProps) {
         update_list_area(frame.area());
 
-        let items: Vec<ListItem> = props
-            .sections
-            .displayed()
-            .map(|(is_selected, page)| {
-                let title = if is_selected {
-                    format!("> {}", page)
-                } else {
-                    format!("  {}", page)
-                };
-
-                ListItem::new(title)
-            })
-            .collect();
+        let items = props.sections.to_list_items(|page| page.to_string());
 
         let list = List::new(items);
 

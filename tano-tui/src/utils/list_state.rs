@@ -1,4 +1,10 @@
-use crate::utils::layout_cache::get_list_height;
+use ratatui::{
+    style::{Color, Modifier, Style},
+    text::{Line, Span},
+    widgets::ListItem,
+};
+
+use crate::utils::layout_cache::get_list_area;
 
 const SCROLL_OFFSET: usize = 5;
 
@@ -25,7 +31,7 @@ impl<T> ListState<T> {
     }
 
     fn align_offset(&mut self) {
-        let height = get_list_height() as usize;
+        let height = get_list_area().height as usize;
 
         if height == 0 || self.items.is_empty() {
             return;
@@ -89,7 +95,7 @@ impl<T> ListState<T> {
     }
 
     pub fn scroll_percent(&mut self, percent: i32) {
-        let height = get_list_height() as i32;
+        let height = get_list_area().height as i32;
         if height == 0 || self.items.is_empty() {
             return;
         }
@@ -109,7 +115,7 @@ impl<T> ListState<T> {
     }
 
     pub fn displayed(&self) -> impl Iterator<Item = (bool, &T)> + '_ {
-        let height = get_list_height() as usize;
+        let height = get_list_area().height as usize;
 
         let max_offset = self.items.len().saturating_sub(height);
         let start = self.offset.min(max_offset);
@@ -126,5 +132,41 @@ impl<T> ListState<T> {
 
                 (is_selected, item)
             })
+    }
+
+    pub fn to_list_items<F>(&self, item_to_text: F) -> Vec<ListItem<'_>>
+    where
+        F: Fn(&T) -> String,
+    {
+        let width = get_list_area().width as usize;
+        let highlight_color = Color::Rgb(137, 180, 250);
+        let text_color = Color::Rgb(30, 30, 46);
+
+        self.displayed()
+            .map(|(is_selected, item)| {
+                let text = item_to_text(item);
+                if !is_selected {
+                    return ListItem::new(format!("  {}", text));
+                }
+
+                let text = format!(" {} ", text);
+                let padding_len = width.saturating_sub(text.chars().count() + 2);
+                let padded_text = format!("{}{}", text, " ".repeat(padding_len));
+
+                let line = Line::from(vec![
+                    Span::styled("", Style::default().fg(highlight_color)),
+                    Span::styled(
+                        padded_text,
+                        Style::default()
+                            .bg(highlight_color)
+                            .fg(text_color)
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                    Span::styled("", Style::default().fg(highlight_color)),
+                ]);
+
+                ListItem::new(line)
+            })
+            .collect()
     }
 }

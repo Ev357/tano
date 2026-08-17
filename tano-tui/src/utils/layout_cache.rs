@@ -23,6 +23,6 @@ pub fn update_list_area(area: Rect) {
     });
 }
 
-pub fn get_list_height() -> u16 {
-    LAYOUT_CACHE.with(|cache| cache.borrow().list_area.height)
+pub fn get_list_area() -> Rect {
+    LAYOUT_CACHE.with(|cache| cache.borrow().list_area)
 }

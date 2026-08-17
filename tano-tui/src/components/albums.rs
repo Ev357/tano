@@ -1,7 +1,7 @@
 use ratatui::{
     Frame,
     layout::Alignment,
-    widgets::{Block, BorderType, List, ListItem, Paragraph},
+    widgets::{Block, BorderType, List, Paragraph},
 };
 use tano_database::album::Album;
 
@@ -34,18 +34,7 @@ impl AlbumsComponent {
 
         update_list_area(block.inner(frame.area()));
 
-        let items: Vec<ListItem> = albums
-            .displayed()
-            .map(|(is_selected, album)| {
-                let title = if is_selected {
-                    format!("> {}", album.title)
-                } else {
-                    format!("  {}", album.title)
-                };
-
-                ListItem::new(title)
-            })
-            .collect();
+        let items = albums.to_list_items(|album| album.title.clone());
 
         let list = List::new(items).block(block);
 

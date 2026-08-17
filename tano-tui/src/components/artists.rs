@@ -1,7 +1,7 @@
 use ratatui::{
     Frame,
     layout::Alignment,
-    widgets::{Block, BorderType, List, ListItem, Paragraph},
+    widgets::{Block, BorderType, List, Paragraph},
 };
 use tano_database::artist::Artist;
 
@@ -34,18 +34,7 @@ impl ArtistsComponent {
 
         update_list_area(block.inner(frame.area()));
 
-        let items: Vec<ListItem> = artists
-            .displayed()
-            .map(|(is_selected, artist)| {
-                let name = if is_selected {
-                    format!("> {}", artist.name)
-                } else {
-                    format!("  {}", artist.name)
-                };
-
-                ListItem::new(name)
-            })
-            .collect();
+        let items = artists.to_list_items(|artist| artist.name.clone());
 
         let list = List::new(items).block(block);
 
