@@ -29,7 +29,9 @@ pub fn update_refresh_view(model_tx: &Sender<Model>) -> Cmd {
             props.config = pages.album.clone();
             true
         }
-        View::Loading | View::Songs(_) | View::Artists(_) | View::Albums(_) => false,
+        View::Loading | View::Song(_) | View::Songs(_) | View::Artists(_) | View::Albums(_) => {
+            false
+        }
     });
 
     if !modified {

@@ -4,4 +4,5 @@ pub mod artists;
 pub mod loading;
 pub mod overview;
 pub mod root;
+pub mod song;
 pub mod songs;

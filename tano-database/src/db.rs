@@ -28,6 +28,46 @@ pub async fn get_songs(executor: impl Executor<'_, Database = Sqlite>) -> Result
     Ok(songs)
 }
 
+pub async fn get_song(
+    executor: impl Executor<'_, Database = Sqlite>,
+    id: i64,
+) -> Result<Option<Song>> {
+    let song = sqlx::query_as!(
+        Song,
+        r#"
+        SELECT id, provider_id, album_id, title, track_number, duration, year
+        FROM songs
+        WHERE id = ?
+        "#,
+        id
+    )
+    .fetch_optional(executor)
+    .await?;
+
+    Ok(song)
+}
+
+pub async fn get_song_artists(
+    executor: impl Executor<'_, Database = Sqlite>,
+    song_id: i64,
+) -> Result<Vec<Artist>> {
+    let artists = sqlx::query_as!(
+        Artist,
+        r#"
+        SELECT DISTINCT artists.id, artists.provider_id, artists.name
+        FROM artists
+        JOIN song_artists ON artists.id = song_artists.artist_id
+        WHERE song_artists.song_id = ?
+        ORDER BY song_artists.role, artists.name
+        "#,
+        song_id
+    )
+    .fetch_all(executor)
+    .await?;
+
+    Ok(artists)
+}
+
 pub async fn get_album_songs(
     executor: impl Executor<'_, Database = Sqlite>,
     album_id: i64,

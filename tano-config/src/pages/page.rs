@@ -9,6 +9,7 @@ pub enum Page {
     Songs,
     Albums,
     Album(i64),
+    Song(i64),
     Artists,
 }
 
@@ -20,6 +21,7 @@ impl Display for Page {
             Page::Albums => "Albums",
             Page::Artists => "Artists",
             Page::Album(id) => &format!("Album {}", id),
+            Page::Song(id) => &format!("Song {}", id),
         };
         write!(f, "{}", page_str)
     }

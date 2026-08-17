@@ -16,6 +16,14 @@ pub enum DatabaseCmd {
     GetSongs {
         respond_to: oneshot::Sender<Result<Vec<Song>>>,
     },
+    GetSong {
+        id: i64,
+        respond_to: oneshot::Sender<Result<Option<Song>>>,
+    },
+    GetSongArtists {
+        song_id: i64,
+        respond_to: oneshot::Sender<Result<Vec<Artist>>>,
+    },
     GetAlbums {
         respond_to: oneshot::Sender<Result<Vec<Album>>>,
     },

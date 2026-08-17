@@ -2,7 +2,7 @@ use tano_config::pages::page::Page;
 use tano_tui::{
     components::{
         album::AlbumProps, albums::AlbumsProps, artists::ArtistsProps, overview::OverviewProps,
-        songs::SongsProps,
+        song::SongProps, songs::SongsProps,
     },
     utils::{list_state::ListState, load_state::LoadState},
     view::View,
@@ -111,6 +111,37 @@ pub fn update_navigate(model_tx: &Sender<Model>, page: Page) -> Cmd {
                 })
             })
         }
+        Page::Song(song_id) => {
+            let modified = model_tx.send_if_modified(|model| {
+                model.view = View::Song(SongProps {
+                    song_id,
+                    data: LoadState::Loading,
+                });
+                true
+            });
+
+            if !modified {
+                return Cmd::None;
+            }
+
+            Cmd::task(move |handles| async move {
+                let song = handles.database.get_song(song_id).await;
+
+                let album = match &song {
+                    Ok(Some(s)) => handles.database.get_album(s.album_id).await,
+                    _ => Ok(None),
+                };
+
+                let artists = handles.database.get_song_artists(song_id).await;
+
+                Msg::Database(DatabaseMsg::SongLoaded {
+                    song_id,
+                    song,
+                    album,
+                    artists,
+                })
+            })
+        }
     };
 
     Cmd::Batch(vec![
@@ -122,7 +153,7 @@ pub fn update_navigate(model_tx: &Sender<Model>, page: Page) -> Cmd {
     ])
 }
 
-fn get_view_cursor(view: &View) -> Option<(Page, usize)> {
+pub fn get_view_cursor(view: &View) -> Option<(Page, usize)> {
     match view {
         View::Overview(props) => props
             .sections
@@ -140,6 +171,7 @@ fn get_view_cursor(view: &View) -> Option<(Page, usize)> {
 
             None
         }
+        View::Song(props) => Some((Page::Song(props.song_id), 0)),
         _ => None,
     }
 }

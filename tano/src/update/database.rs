@@ -3,7 +3,8 @@ use tano_config::pages::page::Page;
 use tano_database::{album::Album, artist::Artist, song::Song};
 use tano_tui::{
     components::{
-        album::AlbumProps, albums::AlbumsProps, artists::ArtistsProps, songs::SongsProps,
+        album::AlbumProps, albums::AlbumsProps, artists::ArtistsProps, song::SongProps,
+        songs::SongsProps,
     },
     utils::{list_state::ListState, load_state::LoadState},
     view::View,
@@ -32,6 +33,12 @@ pub enum DatabaseMsg {
         songs: Result<Vec<Song>>,
     },
     ArtistsLoaded {
+        artists: Result<Vec<Artist>>,
+    },
+    SongLoaded {
+        song_id: i64,
+        song: Result<Option<Song>>,
+        album: Result<Option<Album>>,
         artists: Result<Vec<Artist>>,
     },
 }
@@ -112,6 +119,34 @@ pub fn update_database(model_tx: &Sender<Model>, database_msg: DatabaseMsg) -> C
                 Cmd::None
             }
             Err(report) => Cmd::Error(report),
+        },
+        DatabaseMsg::SongLoaded {
+            song_id,
+            song,
+            album,
+            artists,
+        } => match (song, album, artists) {
+            (Ok(Some(song)), Ok(album), Ok(artists)) => {
+                model_tx.send_if_modified(|model| {
+                    if let Some((Page::Song(current_id), _)) =
+                        crate::update::navigate::get_view_cursor(&model.view)
+                    {
+                        if current_id != song_id {
+                            return false;
+                        }
+                    }
+
+                    model.view = View::Song(SongProps {
+                        song_id,
+                        data: LoadState::Loaded((song, album, artists)),
+                    });
+                    true
+                });
+
+                Cmd::None
+            }
+            (Ok(None), _, _) => Cmd::Msg(Msg::Navigate(Page::Songs)),
+            (Err(report), _, _) | (_, Err(report), _) | (_, _, Err(report)) => Cmd::Error(report),
         },
     }
 }

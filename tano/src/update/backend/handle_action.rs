@@ -91,7 +91,26 @@ pub fn handle_action(model_tx: &Sender<Model>, action: &Action) -> Cmd {
                         return Cmd::Msg(Msg::Navigate(Page::Albums));
                     }
                 }
-                View::Songs(_) | View::Artists(_) => {
+                View::Song(_) => {
+                    if let Direction::Left = direction {
+                        return Cmd::Msg(Msg::Navigate(Page::Songs));
+                    }
+                }
+                View::Songs(props) => {
+                    if let Direction::Left = direction {
+                        return Cmd::Msg(Msg::Navigate(Page::Overview));
+                    }
+                    if let (Direction::Right, Some(song)) = (
+                        direction,
+                        match &props.songs {
+                            LoadState::Loaded(list) => list.selected(),
+                            _ => None,
+                        },
+                    ) {
+                        return Cmd::Msg(Msg::Navigate(Page::Song(song.id)));
+                    }
+                }
+                View::Artists(_) => {
                     if let Direction::Left = direction {
                         return Cmd::Msg(Msg::Navigate(Page::Overview));
                     }

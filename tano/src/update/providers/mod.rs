@@ -82,6 +82,27 @@ pub fn update_providers(model_tx: &Sender<Model>, providers_msg: ProvidersMsg) -
                         })
                     })
                 }
+                View::Song(props) => {
+                    let song_id = props.song_id;
+
+                    Cmd::task(move |handles| async move {
+                        let song = handles.database.get_song(song_id).await;
+
+                        let album = match &song {
+                            Ok(Some(s)) => handles.database.get_album(s.album_id).await,
+                            _ => Ok(None),
+                        };
+
+                        let artists = handles.database.get_song_artists(song_id).await;
+
+                        Msg::Database(DatabaseMsg::SongLoaded {
+                            song_id,
+                            song,
+                            album,
+                            artists,
+                        })
+                    })
+                }
                 View::Loading | View::Overview(_) => Cmd::None,
             }
         }
