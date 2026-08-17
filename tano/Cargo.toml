@@ -4,14 +4,14 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-tano-config = { path = "../tano-config" }
-tano-database = { path = "../tano-database" }
-tano-tui = { path = "../tano-tui" }
-tano-backend = { path = "../tano-backend" }
-tano-watcher = { path = "../tano-watcher" }
-tano-shared = { path = "../tano-shared" }
-tano-macro = { path = "../tano-macro" }
-tano-providers = { path = "../tano-providers" }
+tano-config = { path = "../tano-config", version = "0.1.0" }
+tano-database = { path = "../tano-database", version = "0.1.0" }
+tano-tui = { path = "../tano-tui", version = "0.1.0" }
+tano-backend = { path = "../tano-backend", version = "0.1.0" }
+tano-watcher = { path = "../tano-watcher", version = "0.1.0" }
+tano-shared = { path = "../tano-shared", version = "0.1.0" }
+tano-macro = { path = "../tano-macro", version = "0.1.0" }
+tano-providers = { path = "../tano-providers", version = "0.1.0" }
 color-eyre = "0.6.5"
 tokio = { version = "1.52.3", features = ["full"] }
 crossterm = "0.29.0"
