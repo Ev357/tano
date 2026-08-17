@@ -5,7 +5,7 @@ use ratatui::{
 };
 use tano_database::artist::Artist;
 
-use crate::utils::{list_state::ListState, load_state::LoadState};
+use crate::utils::{layout_cache::update_list_area, list_state::ListState, load_state::LoadState};
 
 #[derive(Debug, Clone)]
 pub struct ArtistsProps {
@@ -32,10 +32,10 @@ impl ArtistsComponent {
             }
         };
 
-        let inner_area = block.inner(frame.area());
+        update_list_area(block.inner(frame.area()));
 
         let items: Vec<ListItem> = artists
-            .displayed(inner_area.height)
+            .displayed()
             .map(|(is_selected, artist)| {
                 let name = if is_selected {
                     format!("> {}", artist.name)

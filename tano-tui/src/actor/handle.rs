@@ -1,5 +1,8 @@
 use color_eyre::eyre::Result;
-use tokio::sync::{mpsc, oneshot, watch};
+use tokio::{
+    sync::{mpsc, oneshot, watch},
+    task,
+};
 
 use crate::{
     actor::{TuiActor, cmd::TuiCmd, run_tui_actor},
@@ -17,7 +20,7 @@ impl TuiActorHandle {
     pub fn new<T: TuiModel>(model_rx: watch::Receiver<T>) -> Result<Self> {
         let (sender, receiver) = mpsc::channel(8);
         let actor = TuiActor::new(receiver, model_rx)?;
-        tokio::spawn(run_tui_actor(actor));
+        task::spawn_local(run_tui_actor(actor));
 
         Ok(Self { sender })
     }

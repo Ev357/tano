@@ -5,7 +5,7 @@ use ratatui::{
 };
 use tano_database::song::Song;
 
-use crate::utils::{list_state::ListState, load_state::LoadState};
+use crate::utils::{layout_cache::update_list_area, list_state::ListState, load_state::LoadState};
 
 #[derive(Debug, Clone)]
 pub struct SongsProps {
@@ -32,10 +32,10 @@ impl SongsComponent {
             }
         };
 
-        let inner_area = block.inner(frame.area());
+        update_list_area(block.inner(frame.area()));
 
         let items: Vec<ListItem> = songs
-            .displayed(inner_area.height)
+            .displayed()
             .map(|(is_selected, song)| {
                 let title = if is_selected {
                     format!("> {}", song.title)

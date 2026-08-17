@@ -11,6 +11,8 @@ keymap = [
   { on = "<Up>", run = "up" },
   { on = "l", run = "right" },
   { on = "<Right>", run = "right" },
+  { on = "<C-d>", run = { scroll = "50%" } },
+  { on = "<C-u>", run = { scroll = "-50%" } },
   { on = [
     "g",
     "g",

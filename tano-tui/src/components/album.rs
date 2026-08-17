@@ -6,7 +6,7 @@ use ratatui::{
 use tano_config::pages::album::AlbumPage;
 use tano_database::{album::Album, artist::Artist, song::Song};
 
-use crate::utils::{list_state::ListState, load_state::LoadState};
+use crate::utils::{layout_cache::update_list_area, list_state::ListState, load_state::LoadState};
 
 #[derive(Debug, Clone)]
 pub struct AlbumProps {
@@ -43,10 +43,10 @@ impl AlbumComponent {
 
         let block = block.title(title.as_str());
 
-        let inner_area = block.inner(frame.area());
+        update_list_area(block.inner(frame.area()));
 
         let items: Vec<ListItem> = songs
-            .displayed(inner_area.height)
+            .displayed()
             .map(|(is_selected, song)| {
                 let track_prefix = match (props.config.hide_track_numbers, song.track_number) {
                     (false, Some(track_number)) => format!("{:02} - ", track_number),

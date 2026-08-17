@@ -4,7 +4,10 @@ use tano_config::actor::handle::ConfigActorHandle;
 use tano_database::actor::handle::DatabaseActorHandle;
 use tano_tui::actor::handle::TuiActorHandle;
 use tano_watcher::actor::{handle::WatcherActorHandle, msg::WatcherMsg};
-use tokio::sync::{mpsc, watch};
+use tokio::{
+    sync::{mpsc, watch},
+    task::LocalSet,
+};
 
 use crate::{
     cmd::Cmd,
@@ -24,7 +27,8 @@ mod update;
 async fn main() -> Result<()> {
     color_eyre::install()?;
 
-    run().await
+    let local = LocalSet::new();
+    local.run_until(run()).await
 }
 
 async fn run() -> Result<()> {

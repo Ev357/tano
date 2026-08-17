@@ -57,6 +57,31 @@ pub fn handle_action(model_tx: &Sender<Model>, action: &Action) -> Cmd {
                 Msg::Tui(TuiMsg::RenderDone(result))
             })
         }
+        Action::Scroll { scroll } => {
+            let modified = model_tx.send_if_modified(|model| match &mut model.view {
+                View::Songs(props) => handle_load_state_scroll(&mut props.songs, *scroll),
+                View::Album(props) => {
+                    let list = match &mut props.data {
+                        LoadState::Loaded((_, _, list)) => list,
+                        LoadState::Loading => return false,
+                    };
+                    list.scroll_percent(*scroll);
+                    true
+                }
+                View::Albums(props) => handle_load_state_scroll(&mut props.albums, *scroll),
+                View::Artists(props) => handle_load_state_scroll(&mut props.artists, *scroll),
+                _ => false,
+            });
+
+            if !modified {
+                return Cmd::None;
+            }
+
+            Cmd::task(|handles| async move {
+                let result = handles.tui.render().await;
+                Msg::Tui(TuiMsg::RenderDone(result))
+            })
+        }
         Action::Move(direction) => {
             match &model_tx.borrow().view {
                 View::Album(_) => {
@@ -177,5 +202,15 @@ fn handle_load_state_jump<T>(load_state: &mut LoadState<ListState<T>>, edge: &Ed
         }
     }
 
+    true
+}
+
+fn handle_load_state_scroll<T>(load_state: &mut LoadState<ListState<T>>, percent: i32) -> bool {
+    let list = match load_state {
+        LoadState::Loaded(list) => list,
+        LoadState::Loading => return false,
+    };
+
+    list.scroll_percent(percent);
     true
 }
